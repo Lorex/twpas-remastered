@@ -4,53 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>病患資料 - TWPAS</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; }
-    .header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 0 1.5rem; height: 60px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
-    .header h1 { font-size: 1.25rem; }
-    .header-right { display: flex; align-items: center; gap: 1rem; }
-    .user-badge { background: rgba(255,255,255,0.2); padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; }
-    .logout-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.4rem 1rem; border-radius: 4px; cursor: pointer; }
-    .sidebar { position: fixed; left: 0; top: 60px; bottom: 0; width: 240px; background: white; border-right: 1px solid #e0e0e0; }
-    .sidebar-menu { list-style: none; padding: 0.5rem 0; }
-    .sidebar-menu li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; color: #333; text-decoration: none; border-left: 3px solid transparent; }
-    .sidebar-menu li a:hover { background: #f5f5f5; }
-    .sidebar-menu li a.active { background: #e3f2fd; color: #1a73e8; border-left-color: #1a73e8; }
-    .menu-divider { height: 1px; background: #e0e0e0; margin: 0.5rem 1rem; }
-    .menu-label { padding: 0.75rem 1.25rem 0.5rem; font-size: 0.75rem; color: #888; }
-    .main { margin-left: 240px; margin-top: 60px; padding: 1.5rem; }
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    .page-header h2 { font-size: 1.5rem; color: #333; }
-    .btn-primary { background: #1a73e8; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; text-decoration: none; }
-    .search-box { background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; display: flex; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-    .search-box input { flex: 1; padding: 0.6rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.95rem; }
-    .search-box button { background: #1a73e8; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 4px; cursor: pointer; }
-    .card { background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #eee; }
-    th { background: #fafafa; font-weight: 500; color: #666; font-size: 0.85rem; }
-    tr:hover { background: #f9f9f9; cursor: pointer; }
-    .gender-male { color: #1565c0; }
-    .gender-female { color: #c62828; }
-    .btn-action { padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.8rem; text-decoration: none; margin-right: 0.25rem; background: #e3f2fd; color: #1565c0; }
-
-    /* Modal */
-    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; justify-content: center; align-items: center; }
-    .modal.show { display: flex; }
-    .modal-content { background: white; border-radius: 12px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
-    .modal-header { padding: 1rem 1.5rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-    .modal-header h3 { font-size: 1.1rem; }
-    .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; }
-    .modal-body { padding: 1.5rem; }
-    .form-group { margin-bottom: 1rem; }
-    .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #333; }
-    .form-group input, .form-group select { width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.95rem; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 0.5rem; }
-    .btn-cancel { background: #f5f5f5; color: #333; border: none; padding: 0.6rem 1.2rem; border-radius: 4px; cursor: pointer; }
-    .btn-save { background: #1a73e8; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 4px; cursor: pointer; }
-  </style>
+  <link rel="stylesheet" href="/shared.css">
 </head>
 <body>
   <header class="header">
@@ -83,7 +37,7 @@
   <main class="main">
     <div class="page-header">
       <h2>👤 病患資料管理</h2>
-      <button class="btn-primary" onclick="openModal()">➕ 新增病患</button>
+      <button class="btn-primary" onclick="openPatientModal()">➕ 新增病患</button>
     </div>
 
     <div class="search-box">
@@ -114,7 +68,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h3 id="modal-title">新增病患</h3>
-        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <button class="modal-close" onclick="closePatientModal()">&times;</button>
       </div>
       <div class="modal-body">
         <div class="form-row">
@@ -157,12 +111,13 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn-cancel" onclick="closeModal()">取消</button>
+        <button class="btn-cancel" onclick="closePatientModal()">取消</button>
         <button class="btn-save" onclick="savePatient()">儲存</button>
       </div>
     </div>
   </div>
 
+  <script src="/shared.js"></script>
   <script>
     // Mock data
     const patients = [
@@ -174,19 +129,6 @@
       { id: 'F678901234', name: '黃小燕', gender: 'female', birth: '1968-09-25', phone: '0967890123' },
     ];
 
-    function calculateAge(birthDate) {
-      const today = new Date();
-      const birth = new Date(birthDate);
-      let age = today.getFullYear() - birth.getFullYear();
-      const m = today.getMonth() - birth.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-      return age;
-    }
-
-    function maskId(id) {
-      return id.substring(0, 4) + '***' + id.substring(7);
-    }
-
     function renderPatients(data) {
       const tbody = document.getElementById('patient-list');
       tbody.textContent = '';
@@ -196,7 +138,7 @@
         tr.onclick = () => editPatient(p.id);
 
         const idTd = document.createElement('td');
-        idTd.textContent = maskId(p.id);
+        idTd.textContent = maskIdNumber(p.id);
         tr.appendChild(idTd);
 
         const nameTd = document.createElement('td');
@@ -248,18 +190,18 @@
       renderPatients(filtered);
     }
 
-    function openModal() {
+    function openPatientModal() {
       document.getElementById('modal-title').textContent = '新增病患';
       document.getElementById('patient-id').value = '';
       document.getElementById('patient-name').value = '';
       document.getElementById('patient-gender').value = '';
       document.getElementById('patient-birth').value = '';
       document.getElementById('patient-phone').value = '';
-      document.getElementById('patient-modal').classList.add('show');
+      openModal('patient-modal');
     }
 
-    function closeModal() {
-      document.getElementById('patient-modal').classList.remove('show');
+    function closePatientModal() {
+      closeModal('patient-modal');
     }
 
     function editPatient(id) {
@@ -271,7 +213,7 @@
       document.getElementById('patient-gender').value = patient.gender;
       document.getElementById('patient-birth').value = patient.birth;
       document.getElementById('patient-phone').value = patient.phone;
-      document.getElementById('patient-modal').classList.add('show');
+      openModal('patient-modal');
     }
 
     function savePatient() {
@@ -282,30 +224,13 @@
         return;
       }
       alert('病患資料已儲存');
-      closeModal();
+      closePatientModal();
     }
 
-    // Auth check
-    function getCookie(name) {
-      const value = '; ' + document.cookie;
-      const parts = value.split('; ' + name + '=');
-      if (parts.length === 2) return parts.pop().split(';').shift();
-      return null;
-    }
-
-    if (!getCookie('twpas_auth')) {
-      window.location.href = '/login?expired=true';
-    } else {
-      const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-      document.getElementById('username-display').textContent = user.username || '';
-      document.getElementById('user-role-badge').textContent = user.role || '';
+    // Initialize page
+    const user = displayUserInfo();
+    if (user) {
       renderPatients(patients);
-    }
-
-    function logout() {
-      sessionStorage.clear();
-      document.cookie = 'twpas_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      window.location.href = '/login';
     }
   </script>
 </body>

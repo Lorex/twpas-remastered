@@ -4,52 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>案件列表 - TWPAS</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; }
-    .header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 0 1.5rem; height: 60px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; left: 0; right: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-    .header h1 { font-size: 1.25rem; font-weight: 500; }
-    .header-right { display: flex; align-items: center; gap: 1rem; }
-    .user-badge { background: rgba(255,255,255,0.2); padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; }
-    .logout-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.4rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
-    .sidebar { position: fixed; left: 0; top: 60px; bottom: 0; width: 240px; background: white; border-right: 1px solid #e0e0e0; overflow-y: auto; }
-    .sidebar-menu { list-style: none; padding: 0.5rem 0; }
-    .sidebar-menu li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; color: #333; text-decoration: none; border-left: 3px solid transparent; }
-    .sidebar-menu li a:hover { background: #f5f5f5; }
-    .sidebar-menu li a.active { background: #e3f2fd; color: #1a73e8; border-left-color: #1a73e8; font-weight: 500; }
-    .menu-divider { height: 1px; background: #e0e0e0; margin: 0.5rem 1rem; }
-    .menu-label { padding: 0.75rem 1.25rem 0.5rem; font-size: 0.75rem; color: #888; text-transform: uppercase; }
-    .main { margin-left: 240px; margin-top: 60px; padding: 1.5rem; }
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    .page-header h2 { font-size: 1.5rem; color: #333; }
-    .btn-primary { background: #1a73e8; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
-    .btn-primary:hover { background: #1557b0; }
-    .filters { background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-    .filter-group { display: flex; align-items: center; gap: 0.5rem; }
-    .filter-group label { font-size: 0.85rem; color: #666; }
-    .filter-group select, .filter-group input { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; }
-    .btn-search { background: #1a73e8; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
-    .card { background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #eee; }
-    th { background: #fafafa; font-weight: 500; color: #666; font-size: 0.85rem; }
-    td { font-size: 0.9rem; }
-    tr:hover { background: #f9f9f9; cursor: pointer; }
-    .status-badge { display: inline-block; padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 500; }
-    .status-draft { background: #fff3e0; color: #e65100; }
-    .status-pending { background: #e3f2fd; color: #1565c0; }
-    .status-reviewing { background: #f3e5f5; color: #7b1fa2; }
-    .status-approved { background: #e8f5e9; color: #2e7d32; }
-    .status-rejected { background: #ffebee; color: #c62828; }
-    .btn-action { padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.8rem; text-decoration: none; margin-right: 0.25rem; }
-    .btn-edit { background: #e3f2fd; color: #1565c0; }
-    .btn-view { background: #f5f5f5; color: #666; }
-    .btn-delete { background: #ffebee; color: #c62828; }
-    .pagination { display: flex; justify-content: center; gap: 0.5rem; padding: 1rem; }
-    .pagination button { padding: 0.5rem 0.75rem; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; }
-    .pagination button.active { background: #1a73e8; color: white; border-color: #1a73e8; }
-    .empty-state { text-align: center; padding: 3rem; color: #666; }
-  </style>
+  <link rel="stylesheet" href="/shared.css">
 </head>
 <body>
   <header class="header">
@@ -138,8 +93,9 @@
     </div>
   </main>
 
+  <script src="/shared.js"></script>
   <script>
-    // Mock data - hardcoded for demo purposes
+    // Mock data
     const claims = [
       { id: 1, caseNumber: 'CL-2026-0001', patientName: '王○明', idNumber: 'A123***789', type: '新申請', drug: 'Pembrolizumab', status: 'draft', date: '2026-02-02' },
       { id: 2, caseNumber: 'CL-2026-0002', patientName: '李○華', idNumber: 'B234***890', type: '續用申請', drug: 'Nivolumab', status: 'pending', date: '2026-02-01' },
@@ -155,7 +111,7 @@
 
     function renderClaims(data) {
       const tbody = document.getElementById('claim-list');
-      tbody.textContent = ''; // Clear safely
+      tbody.textContent = '';
 
       if (data.length === 0) {
         const tr = document.createElement('tr');
@@ -230,32 +186,14 @@
       renderClaims(filtered);
     }
 
-    // Auth check
-    function getCookie(name) {
-      const value = '; ' + document.cookie;
-      const parts = value.split('; ' + name + '=');
-      if (parts.length === 2) return parts.pop().split(';').shift();
-      return null;
-    }
-
-    if (!getCookie('twpas_auth')) {
-      window.location.href = '/login?expired=true';
-    } else {
-      const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-      document.getElementById('username-display').textContent = user.username || '';
-      document.getElementById('user-role-badge').textContent = user.role || '';
-
-      const params = new URLSearchParams(window.location.search);
+    // Initialize page
+    const user = displayUserInfo();
+    if (user) {
+      const params = getUrlParams();
       if (params.get('status')) {
         document.getElementById('filter-status').value = params.get('status');
       }
       applyFilters();
-    }
-
-    function logout() {
-      sessionStorage.clear();
-      document.cookie = 'twpas_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      window.location.href = '/login';
     }
   </script>
 </body>
