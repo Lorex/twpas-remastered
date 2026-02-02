@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Test files
+src/
+e2e/
+*.test.ts
+*.spec.ts
+vitest.config.ts
+playwright.config.ts
+test-results/
+playwright-report/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+*.md
+*.log
+.env*

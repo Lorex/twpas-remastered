@@ -8,8 +8,7 @@
 
 import { describe, it, expect } from 'vitest';
 
-// TODO: Import actual validation functions once implemented
-// import { validatePassword, validatePasswordStrength, validateRegistration } from '../registration';
+import { validatePassword, validatePasswordStrength, validateRegistration } from '../registration';
 
 // ============================================================================
 // BDD Generated Tests
@@ -31,15 +30,13 @@ describe('使用者註冊驗證', () => {
 
     passwordCases.forEach(({ password, expectedStrength, shouldPass }) => {
       it(`密碼 "${password}" 強度應為 "${expectedStrength}"`, () => {
-        // TODO: 實作此測試
-        // const result = validatePasswordStrength(password);
-        // expect(result.strength).toBe(expectedStrength);
+        const result = validatePasswordStrength(password);
+        expect(result.strength).toBe(expectedStrength);
       });
 
       it(`密碼 "${password}" 驗證結果應為 ${shouldPass ? '通過' : '不通過'}`, () => {
-        // TODO: 實作此測試
-        // const result = validatePassword(password);
-        // expect(result.valid).toBe(shouldPass);
+        const result = validatePassword(password);
+        expect(result.valid).toBe(shouldPass);
       });
     });
   });
@@ -50,31 +47,27 @@ describe('使用者註冊驗證', () => {
    */
   describe('密碼規則驗證', () => {
     it('密碼長度不足應該驗證失敗', () => {
-      // TODO: 實作此測試
-      // const result = validatePassword('weak');
-      // expect(result.valid).toBe(false);
-      // expect(result.errors).toContain('密碼必須至少8個字元');
+      const result = validatePassword('weak');
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('密碼必須至少8個字元');
     });
 
     it('密碼必須包含大小寫字母', () => {
-      // TODO: 實作此測試
-      // const result = validatePassword('password123');
-      // expect(result.valid).toBe(false);
-      // expect(result.errors).toContain('密碼必須包含大寫字母');
+      const result = validatePassword('password123');
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('密碼必須包含大寫字母');
     });
 
     it('密碼必須包含數字', () => {
-      // TODO: 實作此測試
-      // const result = validatePassword('Password!');
-      // expect(result.valid).toBe(false);
-      // expect(result.errors).toContain('密碼必須包含數字');
+      const result = validatePassword('Password!');
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('密碼必須包含數字');
     });
 
     it('密碼必須包含特殊字元', () => {
-      // TODO: 實作此測試
-      // const result = validatePassword('Password123');
-      // expect(result.valid).toBe(false);
-      // expect(result.errors).toContain('密碼必須包含特殊字元');
+      const result = validatePassword('Password123');
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('密碼必須包含特殊字元');
     });
   });
 
@@ -84,22 +77,20 @@ describe('使用者註冊驗證', () => {
    */
   describe('確認密碼驗證', () => {
     it('確認密碼不一致應該驗證失敗', () => {
-      // TODO: 實作此測試
-      // const result = validateRegistration({
-      //   password: 'SecurePass123!',
-      //   confirmPassword: 'DifferentPass123!'
-      // });
-      // expect(result.valid).toBe(false);
-      // expect(result.errors).toContain('確認密碼不一致');
+      const result = validateRegistration({
+        password: 'SecurePass123!',
+        confirmPassword: 'DifferentPass123!'
+      });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('確認密碼不一致');
     });
 
     it('確認密碼一致應該驗證通過', () => {
-      // TODO: 實作此測試
-      // const result = validateRegistration({
-      //   password: 'SecurePass123!',
-      //   confirmPassword: 'SecurePass123!'
-      // });
-      // expect(result.errors.filter(e => e.includes('確認密碼'))).toHaveLength(0);
+      const result = validateRegistration({
+        password: 'SecurePass123!',
+        confirmPassword: 'SecurePass123!'
+      });
+      expect(result.errors.filter(e => e.includes('確認密碼'))).toHaveLength(0);
     });
   });
 
@@ -109,25 +100,23 @@ describe('使用者註冊驗證', () => {
    */
   describe('完整註冊資料驗證', () => {
     it('完整且有效的註冊資料應該驗證通過', () => {
-      // TODO: 實作此測試
-      // const result = validateRegistration({
-      //   username: 'new_doctor',
-      //   email: 'doctor@hospital.tw',
-      //   password: 'SecurePass123!',
-      //   confirmPassword: 'SecurePass123!',
-      //   name: '王大明',
-      //   role: '醫師'
-      // });
-      // expect(result.valid).toBe(true);
+      const result = validateRegistration({
+        username: 'new_doctor',
+        email: 'doctor@hospital.tw',
+        password: 'SecurePass123!',
+        confirmPassword: 'SecurePass123!',
+        name: '王大明',
+        role: '醫師'
+      });
+      expect(result.valid).toBe(true);
     });
 
     it('缺少必填欄位應該驗證失敗', () => {
-      // TODO: 實作此測試
-      // const result = validateRegistration({
-      //   username: 'new_doctor'
-      // });
-      // expect(result.valid).toBe(false);
-      // expect(result.errors.length).toBeGreaterThan(0);
+      const result = validateRegistration({
+        username: 'new_doctor'
+      });
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
     });
   });
 });

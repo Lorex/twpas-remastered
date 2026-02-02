@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>案件列表 - TWPAS</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; }
+    .header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 0 1.5rem; height: 60px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; left: 0; right: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .header h1 { font-size: 1.25rem; font-weight: 500; }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    .user-badge { background: rgba(255,255,255,0.2); padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; }
+    .logout-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.4rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
+    .sidebar { position: fixed; left: 0; top: 60px; bottom: 0; width: 240px; background: white; border-right: 1px solid #e0e0e0; overflow-y: auto; }
+    .sidebar-menu { list-style: none; padding: 0.5rem 0; }
+    .sidebar-menu li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; color: #333; text-decoration: none; border-left: 3px solid transparent; }
+    .sidebar-menu li a:hover { background: #f5f5f5; }
+    .sidebar-menu li a.active { background: #e3f2fd; color: #1a73e8; border-left-color: #1a73e8; font-weight: 500; }
+    .menu-divider { height: 1px; background: #e0e0e0; margin: 0.5rem 1rem; }
+    .menu-label { padding: 0.75rem 1.25rem 0.5rem; font-size: 0.75rem; color: #888; text-transform: uppercase; }
+    .main { margin-left: 240px; margin-top: 60px; padding: 1.5rem; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .page-header h2 { font-size: 1.5rem; color: #333; }
+    .btn-primary { background: #1a73e8; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .btn-primary:hover { background: #1557b0; }
+    .filters { background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .filter-group { display: flex; align-items: center; gap: 0.5rem; }
+    .filter-group label { font-size: 0.85rem; color: #666; }
+    .filter-group select, .filter-group input { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; }
+    .btn-search { background: #1a73e8; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+    .card { background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #fafafa; font-weight: 500; color: #666; font-size: 0.85rem; }
+    td { font-size: 0.9rem; }
+    tr:hover { background: #f9f9f9; cursor: pointer; }
+    .status-badge { display: inline-block; padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 500; }
+    .status-draft { background: #fff3e0; color: #e65100; }
+    .status-pending { background: #e3f2fd; color: #1565c0; }
+    .status-reviewing { background: #f3e5f5; color: #7b1fa2; }
+    .status-approved { background: #e8f5e9; color: #2e7d32; }
+    .status-rejected { background: #ffebee; color: #c62828; }
+    .btn-action { padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.8rem; text-decoration: none; margin-right: 0.25rem; }
+    .btn-edit { background: #e3f2fd; color: #1565c0; }
+    .btn-view { background: #f5f5f5; color: #666; }
+    .btn-delete { background: #ffebee; color: #c62828; }
+    .pagination { display: flex; justify-content: center; gap: 0.5rem; padding: 1rem; }
+    .pagination button { padding: 0.5rem 0.75rem; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; }
+    .pagination button.active { background: #1a73e8; color: white; border-color: #1a73e8; }
+    .empty-state { text-align: center; padding: 3rem; color: #666; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>🏥 TWPAS 癌症用藥事前審查系統</h1>
+    <div class="header-right">
+      <span class="user-badge" id="user-role-badge"></span>
+      <span id="username-display"></span>
+      <button class="logout-btn" onclick="logout()">登出</button>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <ul class="sidebar-menu">
+      <li><a href="/dashboard"><span class="icon">📊</span> 儀表板</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">案件管理</div>
+      <li><a href="/claim/new"><span class="icon">➕</span> 新增申請</a></li>
+      <li><a href="/claim" class="active"><span class="icon">📋</span> 案件列表</a></li>
+      <li><a href="/claim?status=draft"><span class="icon">📝</span> 草稿案件</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">資料管理</div>
+      <li><a href="/patient"><span class="icon">👤</span> 病患資料</a></li>
+      <li><a href="/valueset"><span class="icon">📚</span> 值集管理</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">系統功能</div>
+      <li><a href="/fhir"><span class="icon">🔄</span> FHIR 轉換</a></li>
+      <li><a href="/nhi-upload"><span class="icon">☁️</span> 健保上傳</a></li>
+    </ul>
+  </nav>
+
+  <main class="main">
+    <div class="page-header">
+      <h2>📋 案件列表</h2>
+      <a href="/claim/new" class="btn-primary">➕ 新增申請</a>
+    </div>
+
+    <div class="filters">
+      <div class="filter-group">
+        <label>狀態</label>
+        <select id="filter-status" onchange="applyFilters()">
+          <option value="">全部</option>
+          <option value="draft">草稿</option>
+          <option value="pending">待審核</option>
+          <option value="reviewing">審核中</option>
+          <option value="approved">已核准</option>
+          <option value="rejected">已駁回</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>申報類別</label>
+        <select id="filter-type" onchange="applyFilters()">
+          <option value="">全部</option>
+          <option value="new">新申請</option>
+          <option value="continue">續用申請</option>
+          <option value="change">療程變更</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>病患姓名</label>
+        <input type="text" id="filter-patient" placeholder="輸入姓名搜尋" oninput="applyFilters()">
+      </div>
+    </div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>案件編號</th>
+            <th>病患姓名</th>
+            <th>身分證字號</th>
+            <th>申報類別</th>
+            <th>藥物名稱</th>
+            <th>狀態</th>
+            <th>建立日期</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="claim-list"></tbody>
+      </table>
+      <div class="pagination">
+        <button>«</button>
+        <button class="active">1</button>
+        <button>2</button>
+        <button>»</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Mock data - hardcoded for demo purposes
+    const claims = [
+      { id: 1, caseNumber: 'CL-2026-0001', patientName: '王○明', idNumber: 'A123***789', type: '新申請', drug: 'Pembrolizumab', status: 'draft', date: '2026-02-02' },
+      { id: 2, caseNumber: 'CL-2026-0002', patientName: '李○華', idNumber: 'B234***890', type: '續用申請', drug: 'Nivolumab', status: 'pending', date: '2026-02-01' },
+      { id: 3, caseNumber: 'CL-2026-0003', patientName: '張○成', idNumber: 'C345***901', type: '新申請', drug: 'Atezolizumab', status: 'reviewing', date: '2026-01-30' },
+      { id: 4, caseNumber: 'CL-2026-0004', patientName: '陳○麗', idNumber: 'D456***012', type: '療程變更', drug: 'Durvalumab', status: 'approved', date: '2026-01-28' },
+      { id: 5, caseNumber: 'CL-2026-0005', patientName: '林○強', idNumber: 'E567***123', type: '新申請', drug: 'Ipilimumab', status: 'rejected', date: '2026-01-25' },
+      { id: 6, caseNumber: 'CL-2026-0006', patientName: '黃○燕', idNumber: 'F678***234', type: '新申請', drug: 'Trastuzumab', status: 'draft', date: '2026-01-24' },
+      { id: 7, caseNumber: 'CL-2026-0007', patientName: '劉○偉', idNumber: 'G789***345', type: '續用申請', drug: 'Bevacizumab', status: 'approved', date: '2026-01-22' },
+      { id: 8, caseNumber: 'CL-2026-0008', patientName: '蔡○芬', idNumber: 'H890***456', type: '新申請', drug: 'Cetuximab', status: 'pending', date: '2026-01-20' },
+    ];
+
+    const statusLabels = { draft: '草稿', pending: '待審核', reviewing: '審核中', approved: '已核准', rejected: '已駁回' };
+
+    function renderClaims(data) {
+      const tbody = document.getElementById('claim-list');
+      tbody.textContent = ''; // Clear safely
+
+      if (data.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 8;
+        td.className = 'empty-state';
+        td.textContent = '沒有符合條件的案件';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      data.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.onclick = () => window.location.href = '/claim/' + c.id;
+
+        const cells = [c.caseNumber, c.patientName, c.idNumber, c.type, c.drug];
+        cells.forEach(text => {
+          const td = document.createElement('td');
+          td.textContent = text;
+          tr.appendChild(td);
+        });
+
+        // Status cell
+        const statusTd = document.createElement('td');
+        const badge = document.createElement('span');
+        badge.className = 'status-badge status-' + c.status;
+        badge.textContent = statusLabels[c.status];
+        statusTd.appendChild(badge);
+        tr.appendChild(statusTd);
+
+        // Date cell
+        const dateTd = document.createElement('td');
+        dateTd.textContent = c.date;
+        tr.appendChild(dateTd);
+
+        // Actions cell
+        const actionTd = document.createElement('td');
+        if (c.status === 'draft') {
+          const editBtn = document.createElement('a');
+          editBtn.href = '/claim/' + c.id + '/edit';
+          editBtn.className = 'btn-action btn-edit';
+          editBtn.textContent = '編輯';
+          editBtn.onclick = e => e.stopPropagation();
+          actionTd.appendChild(editBtn);
+        }
+        const viewBtn = document.createElement('a');
+        viewBtn.href = '/claim/' + c.id;
+        viewBtn.className = 'btn-action btn-view';
+        viewBtn.textContent = '檢視';
+        viewBtn.onclick = e => e.stopPropagation();
+        actionTd.appendChild(viewBtn);
+        tr.appendChild(actionTd);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function applyFilters() {
+      const status = document.getElementById('filter-status').value;
+      const type = document.getElementById('filter-type').value;
+      const patient = document.getElementById('filter-patient').value.toLowerCase();
+
+      let filtered = claims;
+      if (status) filtered = filtered.filter(c => c.status === status);
+      if (type) {
+        const typeMap = { 'new': '新申請', 'continue': '續用申請', 'change': '療程變更' };
+        filtered = filtered.filter(c => c.type === typeMap[type]);
+      }
+      if (patient) filtered = filtered.filter(c => c.patientName.includes(patient));
+
+      renderClaims(filtered);
+    }
+
+    // Auth check
+    function getCookie(name) {
+      const value = '; ' + document.cookie;
+      const parts = value.split('; ' + name + '=');
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+
+    if (!getCookie('twpas_auth')) {
+      window.location.href = '/login?expired=true';
+    } else {
+      const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+      document.getElementById('username-display').textContent = user.username || '';
+      document.getElementById('user-role-badge').textContent = user.role || '';
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('status')) {
+        document.getElementById('filter-status').value = params.get('status');
+      }
+      applyFilters();
+    }
+
+    function logout() {
+      sessionStorage.clear();
+      document.cookie = 'twpas_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      window.location.href = '/login';
+    }
+  </script>
+</body>
+</html>

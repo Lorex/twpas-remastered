@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登入 - TWPAS</title>
+  <style>
+    body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f5f5f5; }
+    .login-container { width: 100%; max-width: 400px; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #333; margin-bottom: 1.5rem; }
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.5rem; color: #555; font-weight: bold; }
+    input { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+    input:focus { outline: none; border-color: #0066cc; }
+    button { width: 100%; padding: 0.75rem; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; margin-top: 1rem; }
+    button:hover { background: #0052a3; }
+    .error { color: #dc3545; background: #f8d7da; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; display: none; }
+    .error.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>TWPAS 登入</h1>
+    <div id="error-message" class="error"></div>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="username">帳號</label>
+        <input type="text" id="username" name="username" placeholder="請輸入帳號">
+      </div>
+      <div class="form-group">
+        <label for="password">密碼</label>
+        <input type="password" id="password" name="password" placeholder="請輸入密碼">
+      </div>
+      <button type="submit">登入</button>
+    </form>
+  </div>
+
+  <script>
+    // Mock user database
+    const users = {
+      'doctor01': { password: 'Pass1234!', role: '醫師', status: '啟用' },
+      'pharmacist01': { password: 'Pass1234!', role: '藥師', status: '啟用' },
+      'admin01': { password: 'Pass1234!', role: '管理員', status: '啟用' },
+      'inactive_user': { password: 'Pass1234!', role: '醫師', status: '停用' },
+    };
+
+    // Failed login attempts tracking - use localStorage for persistence
+    function getFailedAttempts(username) {
+      const data = localStorage.getItem('failedAttempts_' + username);
+      return data ? parseInt(data, 10) : 0;
+    }
+
+    function setFailedAttempts(username, count) {
+      localStorage.setItem('failedAttempts_' + username, count.toString());
+    }
+
+    function getLockedTime(username) {
+      const data = localStorage.getItem('lockedTime_' + username);
+      return data ? parseInt(data, 10) : 0;
+    }
+
+    function setLockedTime(username, time) {
+      localStorage.setItem('lockedTime_' + username, time.toString());
+    }
+
+    function clearLock(username) {
+      localStorage.removeItem('failedAttempts_' + username);
+      localStorage.removeItem('lockedTime_' + username);
+    }
+
+    // Check for session expiry message
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('expired') === 'true') {
+      showError('您的登入已過期，請重新登入');
+    }
+
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const errorDiv = document.getElementById('error-message');
+
+      // Clear previous error
+      errorDiv.classList.remove('show');
+
+      // Validation: empty fields
+      if (!username || !password) {
+        showError('請輸入帳號和密碼');
+        return;
+      }
+
+      // Check if account is locked
+      const lockTime = getLockedTime(username);
+      if (lockTime > 0) {
+        const now = Date.now();
+        if (now - lockTime < 15 * 60 * 1000) {
+          showError('帳號已被鎖定，請在 15 分鐘後重試');
+          return;
+        } else {
+          clearLock(username);
+        }
+      }
+
+      // Check user exists
+      const user = users[username];
+      if (!user) {
+        recordFailedAttempt(username);
+        if (getLockedTime(username) > 0) {
+          showError('帳號已被鎖定，請在 15 分鐘後重試');
+        } else {
+          showError('帳號或密碼錯誤');
+        }
+        return;
+      }
+
+      // Check password
+      if (user.password !== password) {
+        recordFailedAttempt(username);
+        if (getLockedTime(username) > 0) {
+          showError('帳號已被鎖定，請在 15 分鐘後重試');
+        } else {
+          showError('帳號或密碼錯誤');
+        }
+        return;
+      }
+
+      // Check account status
+      if (user.status === '停用') {
+        showError('帳號已停用，請聯繫管理員');
+        return;
+      }
+
+      // Login success - store session (both cookie and sessionStorage for testing)
+      sessionStorage.setItem('user', JSON.stringify({ username, role: user.role }));
+      sessionStorage.setItem('loginTime', Date.now().toString());
+      // Set auth cookie for session management
+      document.cookie = `twpas_auth=${username}; path=/; SameSite=Lax`;
+      // Clear any lockout on successful login
+      clearLock(username);
+      window.location.href = '/dashboard';
+    });
+
+    function showError(message) {
+      const errorDiv = document.getElementById('error-message');
+      errorDiv.textContent = message;
+      errorDiv.classList.add('show');
+    }
+
+    function recordFailedAttempt(username) {
+      const attempts = getFailedAttempts(username) + 1;
+      setFailedAttempts(username, attempts);
+      if (attempts >= 5) {
+        setLockedTime(username, Date.now());
+      }
+    }
+  </script>
+</body>
+</html>

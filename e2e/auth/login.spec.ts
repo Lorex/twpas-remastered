@@ -77,7 +77,7 @@ test.describe('使用者登入 @auth @login', () => {
     await expectToBeOnDashboard(page);
 
     // 並且 我應該看到歡迎訊息包含 "doctor01"
-    await expect(page.getByText(/doctor01/)).toBeVisible();
+    await expect(page.getByText(/doctor01/).first()).toBeVisible();
 
     // 並且 系統應該記錄登入日誌
     // Note: Login audit logging should be verified via API or database check

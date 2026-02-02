@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>病患資料 - TWPAS</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; }
+    .header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 0 1.5rem; height: 60px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+    .header h1 { font-size: 1.25rem; }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    .user-badge { background: rgba(255,255,255,0.2); padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; }
+    .logout-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.4rem 1rem; border-radius: 4px; cursor: pointer; }
+    .sidebar { position: fixed; left: 0; top: 60px; bottom: 0; width: 240px; background: white; border-right: 1px solid #e0e0e0; }
+    .sidebar-menu { list-style: none; padding: 0.5rem 0; }
+    .sidebar-menu li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; color: #333; text-decoration: none; border-left: 3px solid transparent; }
+    .sidebar-menu li a:hover { background: #f5f5f5; }
+    .sidebar-menu li a.active { background: #e3f2fd; color: #1a73e8; border-left-color: #1a73e8; }
+    .menu-divider { height: 1px; background: #e0e0e0; margin: 0.5rem 1rem; }
+    .menu-label { padding: 0.75rem 1.25rem 0.5rem; font-size: 0.75rem; color: #888; }
+    .main { margin-left: 240px; margin-top: 60px; padding: 1.5rem; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .page-header h2 { font-size: 1.5rem; color: #333; }
+    .btn-primary { background: #1a73e8; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; text-decoration: none; }
+    .search-box { background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; display: flex; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .search-box input { flex: 1; padding: 0.6rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.95rem; }
+    .search-box button { background: #1a73e8; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 4px; cursor: pointer; }
+    .card { background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #fafafa; font-weight: 500; color: #666; font-size: 0.85rem; }
+    tr:hover { background: #f9f9f9; cursor: pointer; }
+    .gender-male { color: #1565c0; }
+    .gender-female { color: #c62828; }
+    .btn-action { padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.8rem; text-decoration: none; margin-right: 0.25rem; background: #e3f2fd; color: #1565c0; }
+
+    /* Modal */
+    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; justify-content: center; align-items: center; }
+    .modal.show { display: flex; }
+    .modal-content { background: white; border-radius: 12px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { padding: 1rem 1.5rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h3 { font-size: 1.1rem; }
+    .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; }
+    .modal-body { padding: 1.5rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #333; }
+    .form-group input, .form-group select { width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.95rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 0.5rem; }
+    .btn-cancel { background: #f5f5f5; color: #333; border: none; padding: 0.6rem 1.2rem; border-radius: 4px; cursor: pointer; }
+    .btn-save { background: #1a73e8; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 4px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>🏥 TWPAS 癌症用藥事前審查系統</h1>
+    <div class="header-right">
+      <span class="user-badge" id="user-role-badge"></span>
+      <span id="username-display"></span>
+      <button class="logout-btn" onclick="logout()">登出</button>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <ul class="sidebar-menu">
+      <li><a href="/dashboard"><span>📊</span> 儀表板</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">案件管理</div>
+      <li><a href="/claim/new"><span>➕</span> 新增申請</a></li>
+      <li><a href="/claim"><span>📋</span> 案件列表</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">資料管理</div>
+      <li><a href="/patient" class="active"><span>👤</span> 病患資料</a></li>
+      <li><a href="/valueset"><span>📚</span> 值集管理</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">系統功能</div>
+      <li><a href="/fhir"><span>🔄</span> FHIR 轉換</a></li>
+      <li><a href="/nhi-upload"><span>☁️</span> 健保上傳</a></li>
+    </ul>
+  </nav>
+
+  <main class="main">
+    <div class="page-header">
+      <h2>👤 病患資料管理</h2>
+      <button class="btn-primary" onclick="openModal()">➕ 新增病患</button>
+    </div>
+
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="輸入姓名或身分證字號搜尋..." oninput="searchPatients()">
+      <button onclick="searchPatients()">🔍 搜尋</button>
+    </div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>身分證字號</th>
+            <th>姓名</th>
+            <th>性別</th>
+            <th>出生日期</th>
+            <th>年齡</th>
+            <th>連絡電話</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="patient-list"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Add/Edit Modal -->
+  <div class="modal" id="patient-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">新增病患</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>身分證字號 *</label>
+            <input type="text" id="patient-id" placeholder="A123456789" maxlength="10">
+          </div>
+          <div class="form-group">
+            <label>姓名 *</label>
+            <input type="text" id="patient-name" placeholder="請輸入姓名">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>性別 *</label>
+            <select id="patient-gender">
+              <option value="">請選擇</option>
+              <option value="male">男</option>
+              <option value="female">女</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>出生日期 *</label>
+            <input type="date" id="patient-birth">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>連絡電話</label>
+            <input type="tel" id="patient-phone" placeholder="0912345678">
+          </div>
+          <div class="form-group">
+            <label>電子郵件</label>
+            <input type="email" id="patient-email" placeholder="example@email.com">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>地址</label>
+          <input type="text" id="patient-address" placeholder="請輸入地址">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal()">取消</button>
+        <button class="btn-save" onclick="savePatient()">儲存</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Mock data
+    const patients = [
+      { id: 'A123456789', name: '王小明', gender: 'male', birth: '1965-03-15', phone: '0912345678' },
+      { id: 'B234567890', name: '李小華', gender: 'female', birth: '1970-08-22', phone: '0923456789' },
+      { id: 'C345678901', name: '張大成', gender: 'male', birth: '1958-11-08', phone: '0934567890' },
+      { id: 'D456789012', name: '陳美麗', gender: 'female', birth: '1972-05-30', phone: '0945678901' },
+      { id: 'E567890123', name: '林志強', gender: 'male', birth: '1980-01-18', phone: '0956789012' },
+      { id: 'F678901234', name: '黃小燕', gender: 'female', birth: '1968-09-25', phone: '0967890123' },
+    ];
+
+    function calculateAge(birthDate) {
+      const today = new Date();
+      const birth = new Date(birthDate);
+      let age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+      return age;
+    }
+
+    function maskId(id) {
+      return id.substring(0, 4) + '***' + id.substring(7);
+    }
+
+    function renderPatients(data) {
+      const tbody = document.getElementById('patient-list');
+      tbody.textContent = '';
+
+      data.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.onclick = () => editPatient(p.id);
+
+        const idTd = document.createElement('td');
+        idTd.textContent = maskId(p.id);
+        tr.appendChild(idTd);
+
+        const nameTd = document.createElement('td');
+        nameTd.textContent = p.name;
+        tr.appendChild(nameTd);
+
+        const genderTd = document.createElement('td');
+        genderTd.className = p.gender === 'male' ? 'gender-male' : 'gender-female';
+        genderTd.textContent = p.gender === 'male' ? '男' : '女';
+        tr.appendChild(genderTd);
+
+        const birthTd = document.createElement('td');
+        birthTd.textContent = p.birth;
+        tr.appendChild(birthTd);
+
+        const ageTd = document.createElement('td');
+        ageTd.textContent = calculateAge(p.birth) + ' 歲';
+        tr.appendChild(ageTd);
+
+        const phoneTd = document.createElement('td');
+        phoneTd.textContent = p.phone;
+        tr.appendChild(phoneTd);
+
+        const actionTd = document.createElement('td');
+        const editBtn = document.createElement('a');
+        editBtn.href = '#';
+        editBtn.className = 'btn-action';
+        editBtn.textContent = '編輯';
+        editBtn.onclick = e => { e.stopPropagation(); editPatient(p.id); };
+        actionTd.appendChild(editBtn);
+
+        const claimBtn = document.createElement('a');
+        claimBtn.href = '/claim/new?patient=' + p.id;
+        claimBtn.className = 'btn-action';
+        claimBtn.textContent = '新增案件';
+        claimBtn.onclick = e => e.stopPropagation();
+        actionTd.appendChild(claimBtn);
+        tr.appendChild(actionTd);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function searchPatients() {
+      const query = document.getElementById('search-input').value.toLowerCase();
+      const filtered = patients.filter(p =>
+        p.name.toLowerCase().includes(query) || p.id.toLowerCase().includes(query)
+      );
+      renderPatients(filtered);
+    }
+
+    function openModal() {
+      document.getElementById('modal-title').textContent = '新增病患';
+      document.getElementById('patient-id').value = '';
+      document.getElementById('patient-name').value = '';
+      document.getElementById('patient-gender').value = '';
+      document.getElementById('patient-birth').value = '';
+      document.getElementById('patient-phone').value = '';
+      document.getElementById('patient-modal').classList.add('show');
+    }
+
+    function closeModal() {
+      document.getElementById('patient-modal').classList.remove('show');
+    }
+
+    function editPatient(id) {
+      const patient = patients.find(p => p.id === id);
+      if (!patient) return;
+      document.getElementById('modal-title').textContent = '編輯病患';
+      document.getElementById('patient-id').value = patient.id;
+      document.getElementById('patient-name').value = patient.name;
+      document.getElementById('patient-gender').value = patient.gender;
+      document.getElementById('patient-birth').value = patient.birth;
+      document.getElementById('patient-phone').value = patient.phone;
+      document.getElementById('patient-modal').classList.add('show');
+    }
+
+    function savePatient() {
+      const id = document.getElementById('patient-id').value;
+      const name = document.getElementById('patient-name').value;
+      if (!id || !name) {
+        alert('請填寫必填欄位');
+        return;
+      }
+      alert('病患資料已儲存');
+      closeModal();
+    }
+
+    // Auth check
+    function getCookie(name) {
+      const value = '; ' + document.cookie;
+      const parts = value.split('; ' + name + '=');
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+
+    if (!getCookie('twpas_auth')) {
+      window.location.href = '/login?expired=true';
+    } else {
+      const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+      document.getElementById('username-display').textContent = user.username || '';
+      document.getElementById('user-role-badge').textContent = user.role || '';
+      renderPatients(patients);
+    }
+
+    function logout() {
+      sessionStorage.clear();
+      document.cookie = 'twpas_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      window.location.href = '/login';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新增申請案件 - TWPAS</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; }
+    .header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 0 1.5rem; height: 60px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+    .header h1 { font-size: 1.25rem; }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    .user-badge { background: rgba(255,255,255,0.2); padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; }
+    .logout-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.4rem 1rem; border-radius: 4px; cursor: pointer; }
+    .sidebar { position: fixed; left: 0; top: 60px; bottom: 0; width: 240px; background: white; border-right: 1px solid #e0e0e0; }
+    .sidebar-menu { list-style: none; padding: 0.5rem 0; }
+    .sidebar-menu li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; color: #333; text-decoration: none; border-left: 3px solid transparent; }
+    .sidebar-menu li a:hover { background: #f5f5f5; }
+    .sidebar-menu li a.active { background: #e3f2fd; color: #1a73e8; border-left-color: #1a73e8; }
+    .menu-divider { height: 1px; background: #e0e0e0; margin: 0.5rem 1rem; }
+    .menu-label { padding: 0.75rem 1.25rem 0.5rem; font-size: 0.75rem; color: #888; }
+    .main { margin-left: 240px; margin-top: 60px; padding: 1.5rem; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .page-header h2 { font-size: 1.5rem; color: #333; }
+    .breadcrumb { font-size: 0.85rem; color: #666; margin-bottom: 1rem; }
+    .breadcrumb a { color: #1a73e8; text-decoration: none; }
+
+    /* Steps */
+    .steps { display: flex; margin-bottom: 1.5rem; background: white; border-radius: 10px; padding: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .step { flex: 1; text-align: center; position: relative; }
+    .step::after { content: ''; position: absolute; top: 15px; right: -50%; width: 100%; height: 2px; background: #ddd; z-index: 0; }
+    .step:last-child::after { display: none; }
+    .step-number { width: 30px; height: 30px; border-radius: 50%; background: #ddd; color: #666; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; position: relative; z-index: 1; }
+    .step.active .step-number { background: #1a73e8; color: white; }
+    .step.completed .step-number { background: #4caf50; color: white; }
+    .step-label { font-size: 0.85rem; margin-top: 0.5rem; color: #666; }
+    .step.active .step-label { color: #1a73e8; font-weight: 500; }
+
+    /* Form */
+    .card { background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 1rem; }
+    .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid #eee; font-weight: 600; color: #333; }
+    .card-body { padding: 1.5rem; }
+    .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #333; font-size: 0.9rem; }
+    .form-group label .required { color: #f44336; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.95rem; }
+    .form-group textarea { resize: vertical; min-height: 100px; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #1a73e8; }
+    .form-hint { font-size: 0.8rem; color: #888; margin-top: 0.25rem; }
+    .btn-row { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem; }
+    .btn { padding: 0.6rem 1.5rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; border: none; }
+    .btn-secondary { background: #f5f5f5; color: #333; }
+    .btn-primary { background: #1a73e8; color: white; }
+    .btn-success { background: #4caf50; color: white; }
+
+    /* Patient Search */
+    .patient-search { position: relative; }
+    .patient-search-results { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; max-height: 200px; overflow-y: auto; z-index: 10; display: none; }
+    .patient-search-results.show { display: block; }
+    .patient-search-item { padding: 0.6rem; cursor: pointer; border-bottom: 1px solid #eee; }
+    .patient-search-item:hover { background: #f5f5f5; }
+    .patient-selected { background: #e3f2fd; padding: 0.75rem; border-radius: 4px; display: none; }
+    .patient-selected.show { display: block; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>🏥 TWPAS 癌症用藥事前審查系統</h1>
+    <div class="header-right">
+      <span class="user-badge" id="user-role-badge"></span>
+      <span id="username-display"></span>
+      <button class="logout-btn" onclick="logout()">登出</button>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <ul class="sidebar-menu">
+      <li><a href="/dashboard"><span>📊</span> 儀表板</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">案件管理</div>
+      <li><a href="/claim/new" class="active"><span>➕</span> 新增申請</a></li>
+      <li><a href="/claim"><span>📋</span> 案件列表</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">資料管理</div>
+      <li><a href="/patient"><span>👤</span> 病患資料</a></li>
+      <li><a href="/valueset"><span>📚</span> 值集管理</a></li>
+    </ul>
+  </nav>
+
+  <main class="main">
+    <div class="breadcrumb">
+      <a href="/dashboard">首頁</a> / <a href="/claim">案件列表</a> / 新增申請
+    </div>
+
+    <div class="page-header">
+      <h2>📝 新增申請案件</h2>
+    </div>
+
+    <div class="steps">
+      <div class="step active">
+        <div class="step-number">1</div>
+        <div class="step-label">基本資料</div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-label">疾病資訊</div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-label">用藥資訊</div>
+      </div>
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-label">檢驗資料</div>
+      </div>
+      <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-label">確認送出</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">📋 基本資料</div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>申報類別 <span class="required">*</span></label>
+            <select id="apply-type">
+              <option value="">請選擇</option>
+              <option value="new">新申請</option>
+              <option value="continue">續用申請</option>
+              <option value="change">療程變更</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>案件類型 <span class="required">*</span></label>
+            <select id="case-type">
+              <option value="">請選擇</option>
+              <option value="general">一般事前審查</option>
+              <option value="expedited">加速審查</option>
+              <option value="emergency">緊急使用</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group patient-search">
+          <label>病患 <span class="required">*</span></label>
+          <input type="text" id="patient-search" placeholder="輸入身分證字號或姓名搜尋...">
+          <div class="patient-search-results" id="patient-results"></div>
+        </div>
+
+        <div class="patient-selected" id="patient-info">
+          <strong>已選擇病患：</strong>
+          <span id="selected-patient-name"></span> (<span id="selected-patient-id"></span>)
+          <button type="button" onclick="clearPatient()" style="margin-left: 1rem; background: #ffebee; color: #c62828; border: none; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer;">✕ 清除</button>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>申報醫師 <span class="required">*</span></label>
+            <input type="text" id="practitioner" value="王大明醫師" readonly>
+            <div class="form-hint">自動帶入登入醫師資料</div>
+          </div>
+          <div class="form-group">
+            <label>醫療機構</label>
+            <input type="text" value="台大醫院" readonly>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">🏥 診斷資訊</div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>主診斷 ICD-10 <span class="required">*</span></label>
+            <input type="text" id="diagnosis-code" placeholder="例：C34.1">
+          </div>
+          <div class="form-group">
+            <label>診斷名稱</label>
+            <input type="text" id="diagnosis-name" placeholder="會自動帶入">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>病情摘要</label>
+          <textarea id="clinical-summary" placeholder="請描述病患目前的臨床狀態..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="saveDraft()">💾 儲存草稿</button>
+      <button class="btn btn-primary" onclick="nextStep()">下一步 →</button>
+    </div>
+  </main>
+
+  <script>
+    // Mock patients for search
+    const patients = [
+      { id: 'A123456789', name: '王小明', gender: '男', birth: '1965-03-15' },
+      { id: 'B234567890', name: '李小華', gender: '女', birth: '1970-08-22' },
+      { id: 'C345678901', name: '張大成', gender: '男', birth: '1958-11-08' },
+    ];
+
+    let selectedPatient = null;
+
+    document.getElementById('patient-search').addEventListener('input', function() {
+      const query = this.value.toLowerCase();
+      const resultsDiv = document.getElementById('patient-results');
+
+      if (query.length < 2) {
+        resultsDiv.classList.remove('show');
+        return;
+      }
+
+      const matches = patients.filter(p =>
+        p.id.toLowerCase().includes(query) || p.name.includes(query)
+      );
+
+      if (matches.length > 0) {
+        resultsDiv.textContent = '';
+        matches.forEach(p => {
+          const div = document.createElement('div');
+          div.className = 'patient-search-item';
+          div.textContent = p.name + ' (' + p.id + ') - ' + p.gender + ', ' + p.birth;
+          div.onclick = () => selectPatient(p);
+          resultsDiv.appendChild(div);
+        });
+        resultsDiv.classList.add('show');
+      } else {
+        resultsDiv.classList.remove('show');
+      }
+    });
+
+    function selectPatient(patient) {
+      selectedPatient = patient;
+      document.getElementById('patient-search').style.display = 'none';
+      document.getElementById('patient-results').classList.remove('show');
+      document.getElementById('patient-info').classList.add('show');
+      document.getElementById('selected-patient-name').textContent = patient.name;
+      document.getElementById('selected-patient-id').textContent = patient.id;
+    }
+
+    function clearPatient() {
+      selectedPatient = null;
+      document.getElementById('patient-search').style.display = 'block';
+      document.getElementById('patient-search').value = '';
+      document.getElementById('patient-info').classList.remove('show');
+    }
+
+    function saveDraft() {
+      alert('草稿已儲存！');
+    }
+
+    function nextStep() {
+      if (!document.getElementById('apply-type').value) {
+        alert('請選擇申報類別');
+        return;
+      }
+      if (!selectedPatient) {
+        alert('請選擇病患');
+        return;
+      }
+      alert('功能開發中...\n\n此為 Mock 展示，完整表單功能將在後續版本實作。');
+    }
+
+    // Auth check
+    function getCookie(name) {
+      const value = '; ' + document.cookie;
+      const parts = value.split('; ' + name + '=');
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+
+    if (!getCookie('twpas_auth')) {
+      window.location.href = '/login?expired=true';
+    } else {
+      const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+      document.getElementById('username-display').textContent = user.username || '';
+      document.getElementById('user-role-badge').textContent = user.role || '';
+    }
+
+    function logout() {
+      sessionStorage.clear();
+      document.cookie = 'twpas_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      window.location.href = '/login';
+    }
+  </script>
+</body>
+</html>

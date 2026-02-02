@@ -1,0 +1,16 @@
+{
+  "name": "twpas-remastered",
+  "version": "1.0.0",
+  "description": "台灣健保癌症用藥事前審查系統",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "mock-server": "node mock-app/server.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.1",
+    "vitest": "^4.0.18"
+  }
+}

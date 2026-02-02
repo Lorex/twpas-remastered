@@ -8,8 +8,7 @@
 
 import { describe, it, expect } from 'vitest';
 
-// TODO: Import actual validation functions once implemented
-// import { validateClaim, validateClaimStatus } from '../claim-validation';
+import { validateClaim, validateClaimStatus } from '../claim-validation';
 
 // ============================================================================
 // BDD Generated Tests
@@ -22,38 +21,48 @@ describe('申報案件驗證', () => {
    */
   describe('必填欄位驗證', () => {
     it('缺少申報類別應該驗證失敗', () => {
-      // TODO: 實作此測試
-      // const result = validateClaim({ patient: { mrn: 'MRN001' } });
-      // expect(result.valid).toBe(false);
-      // expect(result.errors).toContain('申報類別為必填');
+      const result = validateClaim({ patient: { mrn: 'MRN001' } });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('申報類別為必填');
     });
 
     it('缺少案件類別應該驗證失敗', () => {
-      // TODO: 實作此測試
-      // const result = validateClaim({ patient: { mrn: 'MRN001' }, applyType: '新申請' });
-      // expect(result.valid).toBe(false);
-      // expect(result.errors).toContain('案件類別為必填');
+      const result = validateClaim({ patient: { mrn: 'MRN001' }, applyType: '新申請' });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('案件類別為必填');
     });
 
     it('缺少申請醫師應該驗證失敗', () => {
-      // TODO: 實作此測試
-      // const result = validateClaim({
-      //   patient: { mrn: 'MRN001' },
-      //   applyType: '新申請',
-      //   caseType: '癌症標靶治療'
-      // });
-      // expect(result.valid).toBe(false);
-      // expect(result.errors).toContain('申請醫師為必填');
+      const result = validateClaim({
+        patient: { mrn: 'MRN001' },
+        applyType: '新申請',
+        caseType: '癌症標靶治療'
+      });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('申請醫師為必填');
     });
 
     it('缺少體重應該驗證失敗', () => {
-      // TODO: 實作此測試
-      // expect(result.errors).toContain('體重為必填');
+      const result = validateClaim({
+        patient: { mrn: 'MRN001' },
+        applyType: '新申請',
+        caseType: '癌症標靶治療',
+        practitioner: { id: 'DOC001' }
+      });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('體重為必填');
     });
 
     it('缺少身高應該驗證失敗', () => {
-      // TODO: 實作此測試
-      // expect(result.errors).toContain('身高為必填');
+      const result = validateClaim({
+        patient: { mrn: 'MRN001' },
+        applyType: '新申請',
+        caseType: '癌症標靶治療',
+        practitioner: { id: 'DOC001' },
+        weight: 65.5
+      });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('身高為必填');
     });
   });
 
@@ -63,26 +72,27 @@ describe('申報案件驗證', () => {
    */
   describe('續用案件驗證', () => {
     it('續用申請缺少原案件編號應該驗證失敗', () => {
-      // TODO: 實作此測試
-      // const result = validateClaim({
-      //   applyType: '續用申請',
-      //   caseType: '癌症標靶治療',
-      //   practitioner: { id: 'DOC001' },
-      //   weight: 65.5,
-      //   height: 170.0
-      // });
-      // expect(result.valid).toBe(false);
-      // expect(result.errors).toContain('原案件編號為必填');
+      const result = validateClaim({
+        applyType: '續用申請',
+        caseType: '癌症標靶治療',
+        practitioner: { id: 'DOC001' },
+        weight: 65.5,
+        height: 170.0
+      });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('原案件編號為必填');
     });
 
     it('續用申請有原案件編號應該通過此驗證', () => {
-      // TODO: 實作此測試
-      // const result = validateClaim({
-      //   applyType: '續用申請',
-      //   originalCaseNumber: 'CASE-001',
-      //   ...otherRequiredFields
-      // });
-      // expect(result.errors.filter(e => e.includes('原案件編號'))).toHaveLength(0);
+      const result = validateClaim({
+        applyType: '續用申請',
+        caseType: '癌症標靶治療',
+        practitioner: { id: 'DOC001' },
+        weight: 65.5,
+        height: 170.0,
+        originalCaseNumber: 'CASE-001'
+      });
+      expect(result.errors.filter(e => e.includes('原案件編號'))).toHaveLength(0);
     });
   });
 
@@ -92,17 +102,16 @@ describe('申報案件驗證', () => {
    */
   describe('完整案件驗證', () => {
     it('完整且有效的案件資料應該驗證通過', () => {
-      // TODO: 實作此測試
-      // const validClaim = {
-      //   patient: { mrn: 'MRN001', name: '王小明' },
-      //   applyType: '新申請',
-      //   caseType: '癌症標靶治療',
-      //   practitioner: { id: 'DOC001', name: '張醫師' },
-      //   weight: 65.5,
-      //   height: 170.0
-      // };
-      // const result = validateClaim(validClaim);
-      // expect(result.valid).toBe(true);
+      const validClaim = {
+        patient: { mrn: 'MRN001', name: '王小明' },
+        applyType: '新申請',
+        caseType: '癌症標靶治療',
+        practitioner: { id: 'DOC001', name: '張醫師' },
+        weight: 65.5,
+        height: 170.0
+      };
+      const result = validateClaim(validClaim);
+      expect(result.valid).toBe(true);
     });
   });
 
@@ -112,27 +121,23 @@ describe('申報案件驗證', () => {
    */
   describe('案件狀態驗證', () => {
     it('草稿狀態的案件應該可以修改', () => {
-      // TODO: 實作此測試
-      // const result = validateClaimStatus('草稿', 'edit');
-      // expect(result.allowed).toBe(true);
+      const result = validateClaimStatus('草稿', 'edit');
+      expect(result.allowed).toBe(true);
     });
 
     it('待審核狀態的案件應該不能修改', () => {
-      // TODO: 實作此測試
-      // const result = validateClaimStatus('待審核', 'edit');
-      // expect(result.allowed).toBe(false);
+      const result = validateClaimStatus('待審核', 'edit');
+      expect(result.allowed).toBe(false);
     });
 
     it('草稿狀態的案件應該可以刪除', () => {
-      // TODO: 實作此測試
-      // const result = validateClaimStatus('草稿', 'delete');
-      // expect(result.allowed).toBe(true);
+      const result = validateClaimStatus('草稿', 'delete');
+      expect(result.allowed).toBe(true);
     });
 
     it('待審核狀態的案件應該不能刪除', () => {
-      // TODO: 實作此測試
-      // const result = validateClaimStatus('待審核', 'delete');
-      // expect(result.allowed).toBe(false);
+      const result = validateClaimStatus('待審核', 'delete');
+      expect(result.allowed).toBe(false);
     });
   });
 });

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>健保上傳 - TWPAS</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; }
+    .header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 0 1.5rem; height: 60px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+    .header h1 { font-size: 1.25rem; }
+    .sidebar { position: fixed; left: 0; top: 60px; bottom: 0; width: 240px; background: white; border-right: 1px solid #e0e0e0; }
+    .sidebar-menu { list-style: none; padding: 0.5rem 0; }
+    .sidebar-menu li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; color: #333; text-decoration: none; border-left: 3px solid transparent; }
+    .sidebar-menu li a:hover { background: #f5f5f5; }
+    .sidebar-menu li a.active { background: #e3f2fd; color: #1a73e8; border-left-color: #1a73e8; }
+    .menu-divider { height: 1px; background: #e0e0e0; margin: 0.5rem 1rem; }
+    .menu-label { padding: 0.75rem 1.25rem 0.5rem; font-size: 0.75rem; color: #888; }
+    .main { margin-left: 240px; margin-top: 60px; padding: 1.5rem; }
+    .page-header { margin-bottom: 1.5rem; }
+    .page-header h2 { font-size: 1.5rem; color: #333; }
+    .alert { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+    .alert-info { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+    .card { background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 1rem; }
+    .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid #eee; font-weight: 600; }
+    .card-body { padding: 1.5rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 0.6rem 1rem; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #fafafa; font-size: 0.85rem; color: #666; }
+    .status-ready { color: #4caf50; }
+    .status-uploaded { color: #1a73e8; }
+    .status-error { color: #f44336; }
+    .btn { padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; border: none; font-size: 0.85rem; }
+    .btn-upload { background: #4caf50; color: white; }
+    .btn-view { background: #e3f2fd; color: #1565c0; }
+    .progress-bar { height: 20px; background: #e0e0e0; border-radius: 10px; overflow: hidden; margin-top: 1rem; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #4caf50, #8bc34a); transition: width 0.3s; }
+    .upload-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1rem; }
+    .stat-item { text-align: center; padding: 1rem; background: #fafafa; border-radius: 8px; }
+    .stat-value { font-size: 1.5rem; font-weight: 600; color: #1a73e8; }
+    .stat-label { font-size: 0.85rem; color: #666; }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    .logout-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.4rem 1rem; border-radius: 4px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>🏥 TWPAS 癌症用藥事前審查系統</h1>
+    <div class="header-right">
+      <span id="username-display"></span>
+      <button class="logout-btn" onclick="logout()">登出</button>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <ul class="sidebar-menu">
+      <li><a href="/dashboard"><span>📊</span> 儀表板</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">案件管理</div>
+      <li><a href="/claim/new"><span>➕</span> 新增申請</a></li>
+      <li><a href="/claim"><span>📋</span> 案件列表</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">資料管理</div>
+      <li><a href="/patient"><span>👤</span> 病患資料</a></li>
+      <li><a href="/valueset"><span>📚</span> 值集管理</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">系統功能</div>
+      <li><a href="/fhir"><span>🔄</span> FHIR 轉換</a></li>
+      <li><a href="/nhi-upload" class="active"><span>☁️</span> 健保上傳</a></li>
+    </ul>
+  </nav>
+
+  <main class="main">
+    <div class="page-header">
+      <h2>☁️ 健保署上傳作業</h2>
+    </div>
+
+    <div class="alert alert-info">
+      ℹ️ 此功能將案件資料轉換為 FHIR 格式並上傳至健保署事前審查平台。請確認案件資料完整後再進行上傳。
+    </div>
+
+    <div class="upload-stats">
+      <div class="stat-item">
+        <div class="stat-value">5</div>
+        <div class="stat-label">待上傳</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">12</div>
+        <div class="stat-label">已上傳</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">8</div>
+        <div class="stat-label">審核中</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">3</div>
+        <div class="stat-label">已核准</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">待上傳案件</div>
+      <div class="card-body">
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="select-all"></th>
+              <th>案件編號</th>
+              <th>病患姓名</th>
+              <th>藥物</th>
+              <th>狀態</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox"></td>
+              <td>CL-2026-0002</td>
+              <td>李○華</td>
+              <td>Nivolumab</td>
+              <td><span class="status-ready">✓ 準備就緒</span></td>
+              <td><button class="btn btn-upload" onclick="uploadCase('CL-2026-0002')">上傳</button></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox"></td>
+              <td>CL-2026-0008</td>
+              <td>蔡○芬</td>
+              <td>Cetuximab</td>
+              <td><span class="status-ready">✓ 準備就緒</span></td>
+              <td><button class="btn btn-upload" onclick="uploadCase('CL-2026-0008')">上傳</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="margin-top: 1rem;">
+          <button class="btn btn-upload" onclick="uploadSelected()">📤 批次上傳選取項目</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">最近上傳紀錄</div>
+      <div class="card-body">
+        <table>
+          <thead>
+            <tr>
+              <th>案件編號</th>
+              <th>上傳時間</th>
+              <th>收件編號</th>
+              <th>狀態</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>CL-2026-0003</td>
+              <td>2026-02-01 15:30</td>
+              <td>NHI-2026020112345</td>
+              <td><span class="status-uploaded">審核中</span></td>
+              <td><button class="btn btn-view">查詢進度</button></td>
+            </tr>
+            <tr>
+              <td>CL-2026-0004</td>
+              <td>2026-01-28 10:15</td>
+              <td>NHI-2026012854321</td>
+              <td><span class="status-ready">已核准</span></td>
+              <td><button class="btn btn-view">查看結果</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function uploadCase(caseNumber) {
+      if (confirm('確定要上傳案件 ' + caseNumber + ' 嗎？')) {
+        alert('上傳成功！\n\n收件編號：NHI-' + Date.now());
+      }
+    }
+
+    function uploadSelected() {
+      alert('批次上傳功能開發中...');
+    }
+
+    function getCookie(name) {
+      const value = '; ' + document.cookie;
+      const parts = value.split('; ' + name + '=');
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+    if (!getCookie('twpas_auth')) window.location.href = '/login?expired=true';
+    else {
+      const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+      document.getElementById('username-display').textContent = user.username || '';
+    }
+    function logout() {
+      sessionStorage.clear();
+      document.cookie = 'twpas_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      window.location.href = '/login';
+    }
+  </script>
+</body>
+</html>

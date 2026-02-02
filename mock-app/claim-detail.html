@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>案件詳情 - TWPAS</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; }
+    .header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 0 1.5rem; height: 60px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+    .header h1 { font-size: 1.25rem; }
+    .sidebar { position: fixed; left: 0; top: 60px; bottom: 0; width: 240px; background: white; border-right: 1px solid #e0e0e0; }
+    .sidebar-menu { list-style: none; padding: 0.5rem 0; }
+    .sidebar-menu li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; color: #333; text-decoration: none; border-left: 3px solid transparent; }
+    .sidebar-menu li a:hover { background: #f5f5f5; }
+    .menu-divider { height: 1px; background: #e0e0e0; margin: 0.5rem 1rem; }
+    .menu-label { padding: 0.75rem 1.25rem 0.5rem; font-size: 0.75rem; color: #888; }
+    .main { margin-left: 240px; margin-top: 60px; padding: 1.5rem; }
+    .breadcrumb { font-size: 0.85rem; color: #666; margin-bottom: 1rem; }
+    .breadcrumb a { color: #1a73e8; text-decoration: none; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .status-badge { padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 500; }
+    .status-draft { background: #fff3e0; color: #e65100; }
+    .status-pending { background: #e3f2fd; color: #1565c0; }
+    .status-approved { background: #e8f5e9; color: #2e7d32; }
+    .card { background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 1rem; }
+    .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid #eee; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+    .card-body { padding: 1.5rem; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .info-item { margin-bottom: 1rem; }
+    .info-label { font-size: 0.8rem; color: #888; margin-bottom: 0.25rem; }
+    .info-value { font-size: 0.95rem; color: #333; font-weight: 500; }
+    .btn { padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.85rem; border: none; text-decoration: none; display: inline-block; }
+    .btn-primary { background: #1a73e8; color: white; }
+    .btn-success { background: #4caf50; color: white; }
+    .btn-warning { background: #ff9800; color: white; }
+    .btn-danger { background: #f44336; color: white; }
+    .btn-row { display: flex; gap: 0.5rem; margin-top: 1.5rem; }
+    .timeline { border-left: 2px solid #e0e0e0; margin-left: 1rem; padding-left: 1.5rem; }
+    .timeline-item { position: relative; padding-bottom: 1.5rem; }
+    .timeline-item::before { content: ''; position: absolute; left: -1.75rem; top: 0; width: 10px; height: 10px; border-radius: 50%; background: #1a73e8; }
+    .timeline-date { font-size: 0.8rem; color: #888; }
+    .timeline-content { font-size: 0.9rem; color: #333; }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    .logout-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.4rem 1rem; border-radius: 4px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>🏥 TWPAS 癌症用藥事前審查系統</h1>
+    <div class="header-right">
+      <span id="username-display"></span>
+      <button class="logout-btn" onclick="logout()">登出</button>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <ul class="sidebar-menu">
+      <li><a href="/dashboard"><span>📊</span> 儀表板</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">案件管理</div>
+      <li><a href="/claim/new"><span>➕</span> 新增申請</a></li>
+      <li><a href="/claim"><span>📋</span> 案件列表</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">資料管理</div>
+      <li><a href="/patient"><span>👤</span> 病患資料</a></li>
+      <li><a href="/valueset"><span>📚</span> 值集管理</a></li>
+    </ul>
+  </nav>
+
+  <main class="main">
+    <div class="breadcrumb">
+      <a href="/dashboard">首頁</a> / <a href="/claim">案件列表</a> / 案件詳情
+    </div>
+
+    <div class="page-header">
+      <h2>📋 案件詳情 - CL-2026-0001</h2>
+      <span class="status-badge status-draft">草稿</span>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span>📄 基本資訊</span>
+        <a href="/claim/1/edit" class="btn btn-primary">✏️ 編輯</a>
+      </div>
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">案件編號</div>
+            <div class="info-value">CL-2026-0001</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">申報類別</div>
+            <div class="info-value">新申請</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">案件類型</div>
+            <div class="info-value">一般事前審查</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">建立日期</div>
+            <div class="info-value">2026-02-02</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">👤 病患資訊</div>
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">姓名</div>
+            <div class="info-value">王○明</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">身分證字號</div>
+            <div class="info-value">A123***789</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">性別</div>
+            <div class="info-value">男</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">年齡</div>
+            <div class="info-value">61 歲</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">🏥 診斷資訊</div>
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">主診斷 ICD-10</div>
+            <div class="info-value">C34.1</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">診斷名稱</div>
+            <div class="info-value">惡性腫瘤－右肺上葉</div>
+          </div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">病情摘要</div>
+          <div class="info-value">患者於 2025 年 12 月診斷為非小細胞肺癌 (NSCLC)，EGFR 基因突變陽性，分期為 IIIB。目前 ECOG 評分 1 分。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">💊 申請藥物</div>
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">藥物名稱</div>
+            <div class="info-value">Pembrolizumab (Keytruda)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">健保碼</div>
+            <div class="info-value">KC00123456</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">劑量</div>
+            <div class="info-value">200mg</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">申請天數</div>
+            <div class="info-value">21 天</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">📜 案件歷程</div>
+      <div class="card-body">
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-date">2026-02-02 14:30</div>
+            <div class="timeline-content">案件建立（草稿）- doctor01</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <a href="/claim" class="btn" style="background: #f5f5f5; color: #333;">← 返回列表</a>
+      <button class="btn btn-warning" onclick="alert('草稿已儲存')">💾 儲存</button>
+      <button class="btn btn-success" onclick="alert('功能開發中：送出審核')">📤 送出審核</button>
+    </div>
+  </main>
+
+  <script>
+    function getCookie(name) {
+      const value = '; ' + document.cookie;
+      const parts = value.split('; ' + name + '=');
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+
+    if (!getCookie('twpas_auth')) {
+      window.location.href = '/login?expired=true';
+    } else {
+      const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+      document.getElementById('username-display').textContent = user.username || '';
+    }
+
+    function logout() {
+      sessionStorage.clear();
+      document.cookie = 'twpas_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      window.location.href = '/login';
+    }
+  </script>
+</body>
+</html>
