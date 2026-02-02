@@ -2,40 +2,49 @@
 
 台灣健保署癌症用藥事前審查 (Prior Authorization System) 的現代化實作，遵循 [TWPAS FHIR IG v1.1.0](https://build.fhir.org/ig/TWNHIFHIR/pas/) 規範。
 
-## 技術堆疊
+## 快速開始
 
-| 層級 | 技術 |
-|------|------|
-| Frontend | Next.js 14+ (App Router), Tailwind CSS |
-| Backend | Nest.js, TypeScript, Prisma |
-| Database | PostgreSQL |
-| Authentication | Keycloak (OAuth2/OIDC) |
-| FHIR Server | HAPI FHIR |
-| Testing | Cucumber (BDD), Jest |
+### 使用 Docker (推薦)
 
-## 專案結構
+```bash
+# 啟動服務
+docker compose up -d
 
+# 開啟瀏覽器
+open http://localhost:3000
 ```
-twpas-remastered/
-├── apps/
-│   ├── web/                    # Next.js 前端
-│   └── api/                    # Nest.js 後端
-├── libs/
-│   ├── shared/                 # 共用型別與工具
-│   ├── fhir/                   # FHIR 核心庫
-│   └── dto/                    # 共用 DTO
-├── prisma/                     # 資料庫 Schema
-├── features/                   # Cucumber BDD 特性文件
-├── docker/                     # Docker 配置
-└── docs/                       # 文件
+
+### 本地開發
+
+```bash
+# 安裝依賴
+npm install
+
+# 執行單元測試 (304 tests)
+npm test
+
+# 執行 E2E 測試
+npm run test:e2e
+
+# 啟動 Mock 伺服器
+npm run mock-server
 ```
+
+## 測試帳號
+
+| 帳號 | 密碼 | 角色 |
+|------|------|------|
+| `doctor01` | `Pass1234!` | 醫師 |
+| `pharmacist01` | `Pass1234!` | 藥師 |
+| `admin01` | `Pass1234!` | 管理員 |
 
 ## 功能概覽
 
 ### 使用者管理
 - 使用者註冊與登入
+- 密碼強度驗證
+- 帳號鎖定機制 (5 次失敗後鎖定 15 分鐘)
 - OAuth2 (Keycloak) 整合
-- 角色權限控制 (RBAC)
 
 ### 申報資料管理
 - 建立、查詢、修改、刪除申報案件
@@ -53,153 +62,109 @@ twpas-remastered/
 ### FHIR 整合
 - 申報資料轉換為 FHIR Bundle
 - 符合 TWPAS Profile 驗證
-- HAPI FHIR Server 儲存
 - JSON 格式匯出
-
-### 值集管理
-- 35+ 健保署定義值集支援
-- 值集/代碼系統 CRUD
-- 代碼搜尋與驗證
 
 ### 健保平台整合
 - 調閱 FHIR 資料與附件
-- 附件打包 (ZIP)
 - 上傳至健保傳輸平台
 
-### 規則引擎
-- 疾病與藥物申報規則
-- 臨床知識架構
-- 藥物申請追蹤
-
-## 開發方式
-
-本專案採用 **BDD (行為驅動開發)** 方式，使用 Cucumber 描述系統行為。
-
-### BDD 特性文件
-
-特性文件位於 `features/` 目錄，按功能模組組織：
+## 專案結構
 
 ```
-features/
-├── auth/                       # 認證相關 (3 個特性)
-│   ├── login.feature           # 使用者登入 (含錯誤處理、會話管理)
-│   ├── oauth.feature           # Keycloak OAuth2 整合
-│   └── registration.feature    # 使用者註冊
-├── patient/                    # 病人管理 (1 個特性)
-│   └── patient-management.feature  # CRUD、多條件查詢
-├── claim/                      # 申報案件 (2 個特性)
-│   ├── claim-crud.feature      # 建立、讀取、更新、刪除
-│   └── claim-query.feature     # 多條件查詢、排序、分頁
-├── disease-info/               # 疾病資訊 (1 個特性)
-│   └── disease-info.feature    # 影像報告、癌症分期、檢查報告
-├── genetic-info/               # 基因資訊 (1 個特性)
-│   └── genetic-info.feature    # 基因檢測、檢測機構、常見突變
-├── assessment/                 # 評估資訊 (1 個特性)
-│   └── assessment-info.feature # 檢驗檢查、病人狀態評估 (ECOG/Karnofsky)
-├── treatment/                  # 治療資訊 (1 個特性)
-│   └── treatment-info.feature  # 用藥品項、放射治療
-├── outcome/                    # 結果資訊 (1 個特性)
-│   └── outcome-info.feature    # 治療後評估 (RECIST/iRECIST)
-├── application/                # 申請項目 (1 個特性)
-│   └── application-items.feature # 事前審查申請項目管理
-├── fhir/                       # FHIR 整合 (2 個特性)
-│   ├── fhir-conversion.feature # 資料轉換為 FHIR Bundle
-│   └── fhir-validation.feature # Profile 驗證、業務規則
-├── valueset/                   # 值集管理 (1 個特性)
-│   └── valueset-management.feature # 值集 CRUD、代碼系統
-├── nhi-platform/               # 健保平台整合 (1 個特性)
-│   └── nhi-upload.feature      # 調閱、打包、上傳
-├── dashboard/                  # 儀表板 (1 個特性)
-│   └── dashboard.feature       # 統計卡片、圖表、快速操作
-└── support/                    # 測試支援
-    ├── world.ts                # 自訂 World 類別
-    └── hooks.ts                # Before/After Hooks
+twpas-remastered/
+├── src/
+│   ├── lib/types/          # TypeScript 型別定義
+│   ├── auth/               # 認證模組 (註冊、登入)
+│   ├── patient/            # 病患驗證 (身分證驗證)
+│   ├── claim/              # 案件驗證 (狀態轉換)
+│   ├── valueset/           # 值集服務 (代碼管理)
+│   ├── fhir/               # FHIR 轉換與驗證
+│   ├── disease-info/       # 疾病資訊 (影像、分期)
+│   ├── genetic-info/       # 基因檢測 (突變、VAF)
+│   ├── treatment/          # 治療資訊 (用藥、放療)
+│   ├── outcome/            # 療效評估 (RECIST)
+│   ├── assessment/         # 病患評估 (ECOG、Child-Pugh)
+│   ├── application/        # 申請項目 (費用計算)
+│   ├── nhi-platform/       # 健保平台整合
+│   └── dashboard/          # 儀表板服務
+├── e2e/                    # E2E 測試 (Playwright)
+├── mock-app/               # Mock Web 應用程式
+├── features/               # BDD 功能規格 (Gherkin)
+├── Dockerfile              # Docker 映像檔
+└── docker-compose.yml      # Docker Compose 配置
 ```
 
-### 特性標籤 (Tags)
+## 測試覆蓋
 
-| 標籤 | 說明 |
-|------|------|
-| `@happy-path` | 正常流程場景 |
-| `@error-handling` | 錯誤處理場景 |
-| `@validation` | 驗證規則場景 |
-| `@api` | 僅需 API 測試 (不需瀏覽器) |
-| `@login-required` | 需要預先登入 |
-| `@database-seed` | 需要種子資料 |
-| `@database-cleanup` | 測試後需清理資料 |
-| `@wip` | 開發中功能 |
-| `@flaky` | 可能不穩定，允許重試 |
+| 類型 | 測試數量 | 框架 |
+|------|---------|------|
+| 單元測試 | 304 | Vitest |
+| E2E 測試 | 7+ | Playwright |
 
-### 執行測試
+### 模組測試分布
+
+| 模組 | 測試數 | 說明 |
+|------|--------|------|
+| assessment | 33 | ECOG、Karnofsky、Child-Pugh 評分 |
+| disease-info | 32 | 影像報告、癌症分期驗證 |
+| fhir-validation | 29 | FHIR Profile 驗證 |
+| fhir-conversion | 28 | FHIR Bundle 轉換 |
+| treatment | 25 | 用藥、放療、BSA 計算 |
+| outcome | 25 | RECIST 療效評估 |
+| genetic-info | 21 | 基因突變、VAF 驗證 |
+| application | 19 | 申請項目、費用計算 |
+| auth | 18 | 註冊、密碼驗證 |
+| dashboard | 15 | 統計、趨勢數據 |
+| nhi-platform | 14 | 上傳、回條解析 |
+| valueset | 13 | 代碼管理 |
+| claim | 12 | 案件驗證、狀態轉換 |
+| login | 12 | 登入驗證 |
+| patient | 8 | 身分證驗證 |
+
+## 開發方法論
+
+本專案採用 **TDD (Test-Driven Development)** 開發：
+
+```
+1. RED    - 撰寫失敗的測試
+2. GREEN  - 寫最少程式碼讓測試通過
+3. REFACTOR - 重構改善程式碼品質
+```
+
+## Mock Web 應用程式
+
+專案包含完整的 Mock Web UI，可用於展示和 E2E 測試：
+
+| 頁面 | 路徑 | 功能 |
+|------|------|------|
+| 首頁 | `/` | 系統入口 |
+| 登入 | `/login` | 帳號登入 |
+| 儀表板 | `/dashboard` | 統計數字、快速操作 |
+| 案件列表 | `/claim` | 搜尋、篩選、分頁 |
+| 新增申請 | `/claim/new` | 多步驟表單 |
+| 案件詳情 | `/claim/:id` | 完整資訊 |
+| 病患管理 | `/patient` | CRUD 操作 |
+| 值集管理 | `/valueset` | 代碼管理 |
+| FHIR 轉換 | `/fhir` | Bundle 轉換工具 |
+| 健保上傳 | `/nhi-upload` | 批次上傳 |
+
+## NPM 指令
 
 ```bash
-# 執行所有 BDD 測試
-pnpm test:bdd
-
-# 執行特定特性
-pnpm test:bdd --tags @claim
-
-# 執行特定情境
-pnpm test:bdd --name "建立新的申報案件"
+npm test           # 執行單元測試
+npm run test:watch # 監控模式
+npm run test:e2e   # 執行 E2E 測試
+npm run mock-server # 啟動 Mock 伺服器
 ```
 
-## 快速開始
-
-### 先決條件
-
-- Node.js 20+
-- pnpm 8+
-- Docker & Docker Compose
-- PostgreSQL 16+
-
-### 安裝
+## Docker 指令
 
 ```bash
-# Clone 專案
-git clone https://github.com/your-org/twpas-remastered.git
-cd twpas-remastered
-
-# 安裝依賴
-pnpm install
-
-# 啟動基礎服務
-docker-compose up -d
-
-# 執行資料庫遷移
-pnpm db:migrate
-
-# 載入種子資料 (值集)
-pnpm db:seed
-
-# 啟動開發伺服器
-pnpm dev
+docker compose up -d      # 啟動服務
+docker compose down       # 停止服務
+docker compose logs -f    # 查看即時日誌
+docker compose restart    # 重啟服務
 ```
-
-### 環境變數
-
-```env
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/twpas
-
-# Keycloak
-KEYCLOAK_URL=http://localhost:8080
-KEYCLOAK_REALM=twpas
-KEYCLOAK_CLIENT_ID=twpas-web
-KEYCLOAK_CLIENT_SECRET=your-secret
-
-# HAPI FHIR
-FHIR_SERVER_URL=http://localhost:8081/fhir
-
-# NHI Platform
-NHI_PLATFORM_URL=https://nhi-platform.nhi.gov.tw
-```
-
-## 文件
-
-- [系統設計文件](./docs/design.md)
-- [API 文件](./docs/api.md)
-- [FHIR 轉換指南](./docs/fhir-mapping.md)
-- [值集對照表](./docs/valuesets.md)
 
 ## 參考規範
 
