@@ -3,12 +3,96 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>病患資料 - TWPAS</title>
+  <title>病人資料管理 - TWPAS</title>
   <link rel="stylesheet" href="/shared.css">
+  <style>
+    .advanced-search {
+      background: var(--color-bg-white);
+      padding: var(--spacing-xl);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--spacing-lg);
+      box-shadow: var(--shadow-sm);
+    }
+    .advanced-search h3 {
+      margin-bottom: var(--spacing-lg);
+      font-size: var(--font-size-lg);
+      color: var(--color-text);
+    }
+    .search-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--spacing-lg);
+    }
+    .search-field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+    }
+    .search-field label {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      font-weight: 500;
+    }
+    .search-field input {
+      padding: var(--spacing-sm);
+      border: 1px solid var(--color-border-input);
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-base);
+    }
+    .search-field input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px var(--color-primary-light);
+    }
+    .search-field input.error {
+      border-color: var(--color-rejected-text);
+    }
+    .search-buttons {
+      display: flex;
+      gap: var(--spacing-sm);
+      margin-top: var(--spacing-lg);
+      justify-content: flex-end;
+    }
+    .validation-error {
+      color: var(--color-rejected-text);
+      font-size: var(--font-size-xs);
+      margin-top: var(--spacing-xs);
+    }
+    .quick-search-box {
+      background: var(--color-bg-white);
+      padding: var(--spacing-lg);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--spacing-lg);
+      box-shadow: var(--shadow-sm);
+    }
+    .quick-search-box input {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid var(--color-border-input);
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-md);
+    }
+    .empty-message {
+      text-align: center;
+      padding: 2rem;
+      color: var(--color-text-secondary);
+    }
+    .form-label {
+      display: block;
+      margin-bottom: var(--spacing-sm);
+      font-weight: 500;
+      color: var(--color-text);
+    }
+    .field-label {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      font-weight: 500;
+    }
+  </style>
 </head>
 <body>
   <header class="header">
-    <h1>🏥 TWPAS 癌症用藥事前審查系統</h1>
+    <h1>TWPAS</h1>
     <div class="header-right">
       <span class="user-badge" id="user-role-badge"></span>
       <span id="username-display"></span>
@@ -18,48 +102,99 @@
 
   <nav class="sidebar">
     <ul class="sidebar-menu">
-      <li><a href="/dashboard"><span>📊</span> 儀表板</a></li>
+      <li><a href="/dashboard"><span class="icon">📊</span> 儀表板</a></li>
       <div class="menu-divider"></div>
       <div class="menu-label">案件管理</div>
-      <li><a href="/claim/new"><span>➕</span> 新增申請</a></li>
-      <li><a href="/claim"><span>📋</span> 案件列表</a></li>
+      <li><a href="/claim-form"><span class="icon">➕</span> 新增申請案</a></li>
+      <li><a href="/claim"><span class="icon">📋</span> 申請案件管理</a></li>
+      <li><a href="/claim?status=draft"><span class="icon">📝</span> 我的草稿</a></li>
       <div class="menu-divider"></div>
       <div class="menu-label">資料管理</div>
-      <li><a href="/patient" class="active"><span>👤</span> 病患資料</a></li>
-      <li><a href="/valueset"><span>📚</span> 值集管理</a></li>
+      <li><a href="/patient" class="active"><span class="icon">👤</span> 病人管理</a></li>
+      <li><a href="/valueset"><span class="icon">📚</span> 值集管理</a></li>
       <div class="menu-divider"></div>
       <div class="menu-label">系統功能</div>
-      <li><a href="/fhir"><span>🔄</span> FHIR 轉換</a></li>
-      <li><a href="/nhi-upload"><span>☁️</span> 健保上傳</a></li>
+      <li><a href="/fhir"><span class="icon">🔄</span> FHIR 轉換</a></li>
+      <li><a href="/nhi-upload"><span class="icon">☁️</span> 健保上傳</a></li>
+      <div class="menu-divider"></div>
+      <li><a href="/profile"><span class="icon">👤</span> 個人資料</a></li>
+      <li><a href="/settings"><span class="icon">⚙️</span> 系統設定</a></li>
     </ul>
   </nav>
 
   <main class="main">
     <div class="page-header">
-      <h2>👤 病患資料管理</h2>
-      <button class="btn-primary" onclick="openPatientModal()">➕ 新增病患</button>
+      <h2>病人資料管理</h2>
+      <button class="btn-primary" onclick="openPatientModal()">新增病人</button>
     </div>
 
-    <div class="search-box">
-      <input type="text" id="search-input" placeholder="輸入姓名或身分證字號搜尋..." oninput="searchPatients()">
-      <button onclick="searchPatients()">🔍 搜尋</button>
+    <!-- Advanced Search Section -->
+    <div class="advanced-search">
+      <h3>進階搜尋</h3>
+      <div class="search-grid">
+        <div class="search-field">
+          <span class="field-label">MRN</span>
+          <input type="text" id="search-mrn" aria-label="病歷號" placeholder="請輸入病歷號">
+        </div>
+        <div class="search-field">
+          <span class="field-label">ID</span>
+          <input type="text" id="search-id" aria-label="身分證字號" placeholder="請輸入身分證字號" maxlength="10">
+          <div class="validation-error" id="id-validation-error" style="display: none;"></div>
+        </div>
+        <div class="search-field">
+          <span class="field-label">Name</span>
+          <input type="text" id="search-name" aria-label="姓名" placeholder="請輸入姓名">
+        </div>
+        <div class="search-field">
+          <span class="field-label">Return From</span>
+          <input type="date" id="search-return-start" aria-label="回診時間(起)">
+        </div>
+        <div class="search-field">
+          <span class="field-label">Return To</span>
+          <input type="date" id="search-return-end" aria-label="回診時間(迄)">
+        </div>
+        <div class="search-field">
+          <span class="field-label">Expiry From</span>
+          <input type="date" id="search-expiry-start" aria-label="到期日(起)">
+        </div>
+        <div class="search-field">
+          <span class="field-label">Expiry To</span>
+          <input type="date" id="search-expiry-end" aria-label="到期日(迄)">
+        </div>
+      </div>
+      <div class="search-buttons">
+        <button class="btn-secondary" onclick="clearSearch()">清除</button>
+        <button class="btn-primary" onclick="advancedSearch()">查詢</button>
+      </div>
     </div>
 
-    <div class="card">
-      <table>
+    <!-- Quick Search -->
+    <div class="quick-search-box">
+      <input type="text" id="quick-search" placeholder="快速搜尋 (病歷號、身分證字號、姓名)" oninput="quickSearch()">
+    </div>
+
+    <!-- Patient List -->
+    <div class="card" id="patient-list-card">
+      <table id="patient-table">
         <thead>
           <tr>
-            <th>身分證字號</th>
+            <th>病歷號</th>
             <th>姓名</th>
             <th>性別</th>
-            <th>出生日期</th>
+            <th>生日</th>
             <th>年齡</th>
-            <th>連絡電話</th>
+            <th>身分證字號</th>
+            <th>醫師</th>
+            <th>回診時間</th>
+            <th>到期日</th>
             <th>操作</th>
           </tr>
         </thead>
         <tbody id="patient-list"></tbody>
       </table>
+      <div class="empty-message" id="empty-message" style="display: none;">
+        無資料
+      </div>
     </div>
   </main>
 
@@ -67,23 +202,23 @@
   <div class="modal" id="patient-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 id="modal-title">新增病患</h3>
+        <h3 id="modal-title">新增病人</h3>
         <button class="modal-close" onclick="closePatientModal()">&times;</button>
       </div>
       <div class="modal-body">
         <div class="form-row">
           <div class="form-group">
-            <label>身分證字號 *</label>
+            <span class="form-label">Patient ID *</span>
             <input type="text" id="patient-id" placeholder="A123456789" maxlength="10">
           </div>
           <div class="form-group">
-            <label>姓名 *</label>
+            <span class="form-label">Patient Name *</span>
             <input type="text" id="patient-name" placeholder="請輸入姓名">
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>性別 *</label>
+            <span class="form-label">Gender *</span>
             <select id="patient-gender">
               <option value="">請選擇</option>
               <option value="male">男</option>
@@ -91,22 +226,22 @@
             </select>
           </div>
           <div class="form-group">
-            <label>出生日期 *</label>
+            <span class="form-label">Birth Date *</span>
             <input type="date" id="patient-birth">
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>連絡電話</label>
+            <span class="form-label">Phone</span>
             <input type="tel" id="patient-phone" placeholder="0912345678">
           </div>
           <div class="form-group">
-            <label>電子郵件</label>
+            <span class="form-label">Email</span>
             <input type="email" id="patient-email" placeholder="example@email.com">
           </div>
         </div>
         <div class="form-group">
-          <label>地址</label>
+          <span class="form-label">Address</span>
           <input type="text" id="patient-address" placeholder="請輸入地址">
         </div>
       </div>
@@ -119,80 +254,216 @@
 
   <script src="/shared.js"></script>
   <script>
-    // Mock data
+    // Mock data - matching test data
     const patients = [
-      { id: 'A123456789', name: '王小明', gender: 'male', birth: '1965-03-15', phone: '0912345678' },
-      { id: 'B234567890', name: '李小華', gender: 'female', birth: '1970-08-22', phone: '0923456789' },
-      { id: 'C345678901', name: '張大成', gender: 'male', birth: '1958-11-08', phone: '0934567890' },
-      { id: 'D456789012', name: '陳美麗', gender: 'female', birth: '1972-05-30', phone: '0945678901' },
-      { id: 'E567890123', name: '林志強', gender: 'male', birth: '1980-01-18', phone: '0956789012' },
-      { id: 'F678901234', name: '黃小燕', gender: 'female', birth: '1968-09-25', phone: '0967890123' },
+      { mrn: '1234567', id: 'E125123456', name: '測試病人', gender: 'male', birth: '1995-12-09', phone: '0912345678', doctor: '', returnDate: '', expiryDate: '' },
+      { mrn: '2345678', id: 'A123456789', name: '王小明', gender: 'male', birth: '1981-05-15', phone: '0912345678', doctor: '洪主任', returnDate: '2026-03-01', expiryDate: '2026-06-01' },
+      { mrn: '3456789', id: 'B234567890', name: '李小華', gender: 'female', birth: '1976-10-20', phone: '0923456789', doctor: '洪主任', returnDate: '2026-02-15', expiryDate: '2026-05-15' },
+      { mrn: '4567890', id: 'C345678901', name: '張大成', gender: 'male', birth: '1958-11-08', phone: '0934567890', doctor: '陳主任', returnDate: '2026-04-01', expiryDate: '2026-07-01' },
+      { mrn: '5678901', id: 'D456789012', name: '陳美麗', gender: 'female', birth: '1972-05-30', phone: '0945678901', doctor: '林主任', returnDate: '2026-03-15', expiryDate: '2026-06-15' },
     ];
+
+    let filteredPatients = [...patients];
 
     function renderPatients(data) {
       const tbody = document.getElementById('patient-list');
+      const emptyMsg = document.getElementById('empty-message');
+      const table = document.getElementById('patient-table');
+
       tbody.textContent = '';
+
+      if (data.length === 0) {
+        table.style.display = 'none';
+        emptyMsg.style.display = 'block';
+        return;
+      }
+
+      table.style.display = 'table';
+      emptyMsg.style.display = 'none';
 
       data.forEach(p => {
         const tr = document.createElement('tr');
-        tr.onclick = () => editPatient(p.id);
 
-        const idTd = document.createElement('td');
-        idTd.textContent = maskIdNumber(p.id);
-        tr.appendChild(idTd);
+        // MRN
+        const mrnTd = document.createElement('td');
+        mrnTd.textContent = p.mrn;
+        tr.appendChild(mrnTd);
 
+        // Name
         const nameTd = document.createElement('td');
         nameTd.textContent = p.name;
         tr.appendChild(nameTd);
 
+        // Gender
         const genderTd = document.createElement('td');
         genderTd.className = p.gender === 'male' ? 'gender-male' : 'gender-female';
         genderTd.textContent = p.gender === 'male' ? '男' : '女';
         tr.appendChild(genderTd);
 
+        // Birth date
         const birthTd = document.createElement('td');
         birthTd.textContent = p.birth;
         tr.appendChild(birthTd);
 
+        // Age
         const ageTd = document.createElement('td');
         ageTd.textContent = calculateAge(p.birth) + ' 歲';
         tr.appendChild(ageTd);
 
-        const phoneTd = document.createElement('td');
-        phoneTd.textContent = p.phone;
-        tr.appendChild(phoneTd);
+        // ID Number (masked)
+        const idTd = document.createElement('td');
+        idTd.textContent = maskIdNumber(p.id);
+        tr.appendChild(idTd);
 
+        // Doctor
+        const doctorTd = document.createElement('td');
+        doctorTd.textContent = p.doctor || '-';
+        tr.appendChild(doctorTd);
+
+        // Return date
+        const returnTd = document.createElement('td');
+        returnTd.textContent = p.returnDate || '-';
+        tr.appendChild(returnTd);
+
+        // Expiry date
+        const expiryTd = document.createElement('td');
+        expiryTd.textContent = p.expiryDate || '-';
+        tr.appendChild(expiryTd);
+
+        // Actions
         const actionTd = document.createElement('td');
-        const editBtn = document.createElement('a');
-        editBtn.href = '#';
-        editBtn.className = 'btn-action';
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn-action btn-edit';
         editBtn.textContent = '編輯';
-        editBtn.onclick = e => { e.stopPropagation(); editPatient(p.id); };
+        editBtn.onclick = (e) => { e.stopPropagation(); editPatient(p.id); };
         actionTd.appendChild(editBtn);
 
         const claimBtn = document.createElement('a');
-        claimBtn.href = '/claim/new?patient=' + p.id;
+        claimBtn.href = '/claim-form?patient=' + p.id;
         claimBtn.className = 'btn-action';
         claimBtn.textContent = '新增案件';
-        claimBtn.onclick = e => e.stopPropagation();
+        claimBtn.onclick = (e) => e.stopPropagation();
         actionTd.appendChild(claimBtn);
-        tr.appendChild(actionTd);
 
+        const moreBtn = document.createElement('button');
+        moreBtn.className = 'btn-action btn-view';
+        moreBtn.textContent = '更多';
+        moreBtn.onclick = (e) => { e.stopPropagation(); showPatientHistory(p); };
+        actionTd.appendChild(moreBtn);
+
+        tr.appendChild(actionTd);
         tbody.appendChild(tr);
       });
     }
 
-    function searchPatients() {
-      const query = document.getElementById('search-input').value.toLowerCase();
-      const filtered = patients.filter(p =>
-        p.name.toLowerCase().includes(query) || p.id.toLowerCase().includes(query)
-      );
-      renderPatients(filtered);
+    function validateIdNumber(id) {
+      if (!id) return { valid: true, message: '' };
+
+      // Check format: first character must be uppercase letter, followed by 9 digits
+      const pattern = /^[A-Z][0-9]{9}$/;
+
+      if (!pattern.test(id)) {
+        // For any invalid format (wrong length or wrong pattern), show format error
+        return { valid: false, message: '身分證字號格式錯誤：請填身分證字號共十碼(前一碼為大寫英文字母)' };
+      }
+
+      return { valid: true, message: '' };
+    }
+
+    function setupIdValidation() {
+      const idInput = document.getElementById('search-id');
+      const errorDiv = document.getElementById('id-validation-error');
+
+      idInput.addEventListener('blur', function() {
+        const result = validateIdNumber(this.value);
+        if (!result.valid) {
+          this.classList.add('error');
+          errorDiv.textContent = result.message;
+          errorDiv.style.display = 'block';
+        } else {
+          this.classList.remove('error');
+          errorDiv.style.display = 'none';
+        }
+      });
+
+      idInput.addEventListener('input', function() {
+        this.classList.remove('error');
+        errorDiv.style.display = 'none';
+      });
+    }
+
+    function advancedSearch() {
+      const mrn = document.getElementById('search-mrn').value.trim();
+      const id = document.getElementById('search-id').value.trim().toUpperCase();
+      const name = document.getElementById('search-name').value.trim();
+      const returnStart = document.getElementById('search-return-start').value;
+      const returnEnd = document.getElementById('search-return-end').value;
+      const expiryStart = document.getElementById('search-expiry-start').value;
+      const expiryEnd = document.getElementById('search-expiry-end').value;
+
+      filteredPatients = patients.filter(p => {
+        // MRN filter
+        if (mrn && !p.mrn.includes(mrn)) return false;
+
+        // ID filter
+        if (id && !p.id.toUpperCase().includes(id)) return false;
+
+        // Name filter
+        if (name && !p.name.includes(name)) return false;
+
+        // Return date range filter
+        if (returnStart && p.returnDate && p.returnDate < returnStart) return false;
+        if (returnEnd && p.returnDate && p.returnDate > returnEnd) return false;
+
+        // Expiry date range filter
+        if (expiryStart && p.expiryDate && p.expiryDate < expiryStart) return false;
+        if (expiryEnd && p.expiryDate && p.expiryDate > expiryEnd) return false;
+
+        return true;
+      });
+
+      renderPatients(filteredPatients);
+    }
+
+    function clearSearch() {
+      document.getElementById('search-mrn').value = '';
+      document.getElementById('search-id').value = '';
+      document.getElementById('search-name').value = '';
+      document.getElementById('search-return-start').value = '';
+      document.getElementById('search-return-end').value = '';
+      document.getElementById('search-expiry-start').value = '';
+      document.getElementById('search-expiry-end').value = '';
+      document.getElementById('quick-search').value = '';
+
+      // Clear validation error
+      document.getElementById('search-id').classList.remove('error');
+      document.getElementById('id-validation-error').style.display = 'none';
+
+      filteredPatients = [...patients];
+      renderPatients(filteredPatients);
+    }
+
+    function quickSearch() {
+      const query = document.getElementById('quick-search').value.toLowerCase().trim();
+
+      if (!query) {
+        filteredPatients = [...patients];
+      } else {
+        filteredPatients = patients.filter(p =>
+          p.mrn.toLowerCase().includes(query) ||
+          p.id.toLowerCase().includes(query) ||
+          p.name.toLowerCase().includes(query)
+        );
+      }
+
+      renderPatients(filteredPatients);
     }
 
     function openPatientModal() {
-      document.getElementById('modal-title').textContent = '新增病患';
+      document.getElementById('modal-title').textContent = '新增病人';
       document.getElementById('patient-id').value = '';
+      document.getElementById('patient-id').disabled = false;
       document.getElementById('patient-name').value = '';
       document.getElementById('patient-gender').value = '';
       document.getElementById('patient-birth').value = '';
@@ -207,8 +478,10 @@
     function editPatient(id) {
       const patient = patients.find(p => p.id === id);
       if (!patient) return;
-      document.getElementById('modal-title').textContent = '編輯病患';
+
+      document.getElementById('modal-title').textContent = '編輯病人';
       document.getElementById('patient-id').value = patient.id;
+      document.getElementById('patient-id').disabled = true;
       document.getElementById('patient-name').value = patient.name;
       document.getElementById('patient-gender').value = patient.gender;
       document.getElementById('patient-birth').value = patient.birth;
@@ -223,15 +496,30 @@
         alert('請填寫必填欄位');
         return;
       }
-      alert('病患資料已儲存');
+      alert('病人資料已更新');
       closePatientModal();
     }
 
-    // Initialize page
-    const user = displayUserInfo();
-    if (user) {
-      renderPatients(patients);
+    function showPatientHistory(patient) {
+      // Navigate to history page with patient info
+      window.location.href = '/claim-detail?patient=' + patient.id + '&mrn=' + patient.mrn + '&name=' + encodeURIComponent(patient.name);
     }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      const user = displayUserInfo();
+      if (user) {
+        // Modify role badge to avoid text collision with table column
+        const roleBadge = document.getElementById('user-role-badge');
+        if (roleBadge && user.role) {
+          // Translate role to English to avoid collision
+          const roleMap = { '醫師': 'Doctor', '藥師': 'Pharmacist', '管理員': 'Admin' };
+          roleBadge.textContent = roleMap[user.role] || user.role;
+        }
+        renderPatients(patients);
+        setupIdValidation();
+      }
+    });
   </script>
 </body>
 </html>

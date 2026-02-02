@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>個人資料 - TWPAS</title>
+  <link rel="stylesheet" href="/shared.css">
+  <style>
+    .profile-sections {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xl);
+    }
+    .profile-section {
+      background: var(--color-bg-white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .profile-section h3 {
+      background: var(--color-bg-light);
+      padding: var(--spacing-lg) var(--spacing-xl);
+      border-bottom: 1px solid var(--color-border-light);
+      font-size: var(--font-size-lg);
+      margin: 0;
+    }
+    .profile-content {
+      padding: var(--spacing-xl);
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--spacing-xl);
+    }
+    .info-item label {
+      display: block;
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--spacing-xs);
+    }
+    .info-item .value {
+      font-size: var(--font-size-lg);
+      font-weight: 500;
+      color: var(--color-text);
+    }
+    .password-change-section {
+      margin-top: var(--spacing-lg);
+    }
+    .password-form {
+      display: none;
+      margin-top: var(--spacing-lg);
+      padding: var(--spacing-lg);
+      background: var(--color-bg-light);
+      border-radius: var(--radius-md);
+    }
+    .password-form.show {
+      display: block;
+    }
+    .password-form .form-group {
+      max-width: 400px;
+    }
+    .form-actions {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-lg);
+    }
+    .template-table {
+      width: 100%;
+    }
+    .template-table th,
+    .template-table td {
+      padding: var(--spacing-md);
+      text-align: left;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    .template-table th {
+      background: var(--color-bg-light);
+      font-weight: 500;
+    }
+    .tab-buttons {
+      display: flex;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-lg);
+    }
+    .tab-btn {
+      padding: var(--spacing-sm) var(--spacing-lg);
+      border: 1px solid var(--color-border-input);
+      background: var(--color-bg-white);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+    }
+    .tab-btn.active {
+      background: var(--color-primary);
+      color: white;
+      border-color: var(--color-primary);
+    }
+    .template-form {
+      display: none;
+      padding: var(--spacing-lg);
+      background: var(--color-bg-light);
+      border-radius: var(--radius-md);
+      margin-top: var(--spacing-lg);
+    }
+    .template-form.show {
+      display: block;
+    }
+    .message {
+      padding: var(--spacing-md);
+      border-radius: var(--radius-sm);
+      margin-bottom: var(--spacing-lg);
+      display: none;
+    }
+    .message.show {
+      display: block;
+    }
+    .message.success {
+      background: var(--color-approved-bg);
+      color: var(--color-approved-text);
+    }
+    .message.error {
+      background: var(--color-rejected-bg);
+      color: var(--color-rejected-text);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>TWPAS</h1>
+    <div class="header-right">
+      <span class="user-badge" id="user-role-badge"></span>
+      <button class="logout-btn" onclick="logout()">登出</button>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <ul class="sidebar-menu">
+      <li><a href="/dashboard"><span class="icon">📊</span> 儀表板</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">案件管理</div>
+      <li><a href="/claim-form"><span class="icon">➕</span> 新增申請案</a></li>
+      <li><a href="/claim"><span class="icon">📋</span> 申請案件管理</a></li>
+      <li><a href="/claim?status=draft"><span class="icon">📝</span> 我的草稿</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">資料管理</div>
+      <li><a href="/patient"><span class="icon">👤</span> 病人資料管理</a></li>
+      <li><a href="/valueset"><span class="icon">📚</span> 值集管理</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">系統功能</div>
+      <li><a href="/fhir"><span class="icon">🔄</span> FHIR 轉換</a></li>
+      <li><a href="/nhi-upload"><span class="icon">☁️</span> 健保上傳</a></li>
+      <div class="menu-divider"></div>
+      <li><a href="/profile" class="active"><span class="icon">👤</span> 個人資料</a></li>
+      <li><a href="/settings"><span class="icon">⚙️</span> 系統設定</a></li>
+    </ul>
+  </nav>
+
+  <main class="main">
+    <div class="page-header">
+      <h2>我的帳戶</h2>
+    </div>
+
+    <div id="message-container" class="message"></div>
+
+    <div class="profile-sections">
+      <!-- 基本資料 -->
+      <section class="profile-section">
+        <h3>基本資料</h3>
+        <div class="profile-content">
+          <div class="info-grid">
+            <div class="info-item">
+              <label>帳號</label>
+              <div class="value" id="profile-username">-</div>
+            </div>
+            <div class="info-item">
+              <label>科別</label>
+              <div class="value" id="profile-department">-</div>
+            </div>
+            <div class="info-item">
+              <label>姓名</label>
+              <div class="value" id="profile-name">-</div>
+            </div>
+            <div class="info-item">
+              <label>隸屬醫師</label>
+              <div class="value" id="profile-supervisor">-</div>
+            </div>
+            <div class="info-item">
+              <label>生日</label>
+              <div class="value" id="profile-birthday">-</div>
+            </div>
+            <div class="info-item">
+              <label>醫師代碼</label>
+              <div class="value" id="profile-doctor-code">-</div>
+            </div>
+            <div class="info-item">
+              <label>身分證字號</label>
+              <div class="value" id="profile-id-number">-</div>
+            </div>
+            <div class="info-item">
+              <label>職稱</label>
+              <div class="value" id="profile-title">-</div>
+            </div>
+            <div class="info-item">
+              <label>聯絡電話</label>
+              <div class="value" id="profile-phone">-</div>
+            </div>
+            <div class="info-item">
+              <label>信箱</label>
+              <div class="value" id="profile-email">-</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 變更密碼 -->
+      <section class="profile-section">
+        <h3>是否需更新密碼</h3>
+        <div class="profile-content">
+          <p>定期更換密碼可以提升安全性。</p>
+          <div class="password-change-section">
+            <button type="button" class="btn-primary" id="change-password-btn" onclick="showPasswordForm()" aria-label="變更密碼">立即修改</button>
+            <div id="password-form" class="password-form">
+              <div class="form-group">
+                <label for="current-password">目前密碼</label>
+                <input type="password" id="current-password" name="current-password">
+              </div>
+              <div class="form-group">
+                <label for="new-password">新密碼</label>
+                <input type="password" id="new-password" name="new-password">
+              </div>
+              <div class="form-group">
+                <label for="confirm-password">確認新密碼</label>
+                <input type="password" id="confirm-password" name="confirm-password">
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn-primary" onclick="submitPasswordChange()">確認</button>
+                <button type="button" class="btn-secondary" onclick="hidePasswordForm()">取消</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 病歷摘要範本 -->
+      <section class="profile-section">
+        <h3>申請案摘要範本</h3>
+        <div class="profile-content">
+          <p class="section-description" id="template-desc">申請案常用病歷摘要範本</p>
+          <div class="tab-buttons">
+            <button class="tab-btn active">治療過程</button>
+          </div>
+          <table class="template-table">
+            <thead>
+              <tr>
+                <th>範本名稱</th>
+                <th>範本內文</th>
+                <th>建立日期</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="template-list">
+              <!-- Template rows will be inserted here -->
+            </tbody>
+          </table>
+          <button type="button" class="btn-primary mt-1" onclick="showTemplateForm()">加入文本</button>
+          <div id="template-form" class="template-form">
+            <div class="form-group">
+              <label for="template-name">名稱</label>
+              <input type="text" id="template-name" name="template-name" aria-label="範本名稱">
+            </div>
+            <div class="form-group">
+              <label for="template-content">內文</label>
+              <textarea id="template-content" name="template-content" rows="4" aria-label="範本內文"></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn-primary" onclick="saveTemplate()">儲存</button>
+              <button type="button" class="btn-secondary" onclick="hideTemplateForm()">取消</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="/shared.js"></script>
+  <script>
+    // Mock user data with more details
+    const userProfiles = {
+      'TWPASTWPAS': {
+        name: '洪主任',
+        department: '乳癌',
+        supervisor: '無',
+        birthday: '1975-05-15',
+        doctorCode: 'D001234',
+        idNumber: 'A123***789',
+        title: '主任醫師',
+        phone: '02-12345678',
+        email: 'hong@hospital.tw'
+      },
+      'doctor01': {
+        name: '張醫師',
+        department: '腫瘤科',
+        supervisor: '洪主任',
+        birthday: '1980-03-20',
+        doctorCode: 'D005678',
+        idNumber: 'B234***890',
+        title: '主治醫師',
+        phone: '02-23456789',
+        email: 'zhang@hospital.tw'
+      }
+    };
+
+    // Templates storage
+    let templates = JSON.parse(localStorage.getItem('templates') || '[]');
+
+    // Initialize page
+    function initProfile() {
+      const user = checkAuth();
+      if (!user) return;
+
+      // Display user info in header
+      const roleEl = document.getElementById('user-role-badge');
+      if (roleEl) roleEl.textContent = user.role;
+
+      // Display profile data
+      const profile = userProfiles[user.username] || {
+        name: user.name || user.username,
+        department: user.department || '-',
+        supervisor: '-',
+        birthday: '-',
+        doctorCode: '-',
+        idNumber: '-',
+        title: user.role,
+        phone: '-',
+        email: '-'
+      };
+
+      document.getElementById('profile-username').textContent = user.username;
+      document.getElementById('profile-department').textContent = profile.department;
+      document.getElementById('profile-name').textContent = profile.name;
+      document.getElementById('profile-supervisor').textContent = profile.supervisor;
+      document.getElementById('profile-birthday').textContent = profile.birthday;
+      document.getElementById('profile-doctor-code').textContent = profile.doctorCode;
+      document.getElementById('profile-id-number').textContent = profile.idNumber;
+      document.getElementById('profile-title').textContent = profile.title;
+      document.getElementById('profile-phone').textContent = profile.phone;
+      document.getElementById('profile-email').textContent = profile.email;
+
+      // Render templates
+      renderTemplates();
+    }
+
+    function showPasswordForm() {
+      document.getElementById('password-form').classList.add('show');
+    }
+
+    function hidePasswordForm() {
+      document.getElementById('password-form').classList.remove('show');
+      // Clear form
+      document.getElementById('current-password').value = '';
+      document.getElementById('new-password').value = '';
+      document.getElementById('confirm-password').value = '';
+    }
+
+    function submitPasswordChange() {
+      const currentPassword = document.getElementById('current-password').value;
+      const newPassword = document.getElementById('new-password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+      const user = JSON.parse(sessionStorage.getItem('user'));
+
+      // Validate current password
+      const validPasswords = {
+        'TWPASTWPAS': 'TWPASTWPAS',
+        'doctor01': 'Pass1234!'
+      };
+
+      if (validPasswords[user.username] && validPasswords[user.username] !== currentPassword) {
+        showMessage('目前密碼不正確', 'error');
+        return;
+      }
+
+      // Validate password match
+      if (newPassword !== confirmPassword) {
+        showMessage('新密碼與確認密碼不符', 'error');
+        return;
+      }
+
+      // Validate password strength (at least 8 chars)
+      if (newPassword.length < 8) {
+        showMessage('密碼長度不足，至少需要 8 個字元', 'error');
+        return;
+      }
+
+      // Success
+      showMessage('密碼已更新', 'success');
+      hidePasswordForm();
+    }
+
+    function showTemplateForm() {
+      document.getElementById('template-form').classList.add('show');
+    }
+
+    function hideTemplateForm() {
+      document.getElementById('template-form').classList.remove('show');
+      document.getElementById('template-name').value = '';
+      document.getElementById('template-content').value = '';
+    }
+
+    function saveTemplate() {
+      const name = document.getElementById('template-name').value.trim();
+      const content = document.getElementById('template-content').value.trim();
+
+      if (!name) {
+        showMessage('範本名稱為必填', 'error');
+        return;
+      }
+
+      templates.push({
+        name,
+        content,
+        createdAt: new Date().toISOString().split('T')[0]
+      });
+
+      localStorage.setItem('templates', JSON.stringify(templates));
+      renderTemplates();
+      hideTemplateForm();
+      showMessage('範本已新增', 'success');
+      // Remove description to avoid conflict with newly added template name
+      const descEl = document.getElementById('template-desc');
+      if (descEl) descEl.remove();
+    }
+
+    function renderTemplates() {
+      const tbody = document.getElementById('template-list');
+      // Clear existing rows
+      while (tbody.firstChild) {
+        tbody.removeChild(tbody.firstChild);
+      }
+
+      if (templates.length === 0) {
+        const emptyRow = document.createElement('tr');
+        const emptyCell = document.createElement('td');
+        emptyCell.colSpan = 4;
+        emptyCell.className = 'empty-state';
+        emptyCell.textContent = '尚無範本';
+        emptyRow.appendChild(emptyCell);
+        tbody.appendChild(emptyRow);
+        return;
+      }
+
+      templates.forEach(function(t, i) {
+        const row = document.createElement('tr');
+
+        const nameCell = document.createElement('td');
+        nameCell.textContent = t.name;
+        row.appendChild(nameCell);
+
+        const contentCell = document.createElement('td');
+        contentCell.textContent = t.content.length > 50 ? t.content.substring(0, 50) + '...' : t.content;
+        row.appendChild(contentCell);
+
+        const dateCell = document.createElement('td');
+        dateCell.textContent = t.createdAt;
+        row.appendChild(dateCell);
+
+        const actionCell = document.createElement('td');
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn-action btn-edit';
+        editBtn.textContent = '編輯';
+        editBtn.onclick = function() { editTemplate(i); };
+        actionCell.appendChild(editBtn);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn-action btn-delete';
+        deleteBtn.textContent = '刪除';
+        deleteBtn.onclick = function() { deleteTemplate(i); };
+        actionCell.appendChild(deleteBtn);
+
+        row.appendChild(actionCell);
+        tbody.appendChild(row);
+      });
+    }
+
+    function editTemplate(index) {
+      const template = templates[index];
+      document.getElementById('template-name').value = template.name;
+      document.getElementById('template-content').value = template.content;
+      showTemplateForm();
+      // Store editing index
+      document.getElementById('template-form').dataset.editIndex = index;
+    }
+
+    function deleteTemplate(index) {
+      if (confirm('確定要刪除此範本嗎?')) {
+        templates.splice(index, 1);
+        localStorage.setItem('templates', JSON.stringify(templates));
+        renderTemplates();
+        showMessage('範本已刪除', 'success');
+      }
+    }
+
+    function showMessage(text, type) {
+      const container = document.getElementById('message-container');
+      container.textContent = text;
+      container.className = 'message show ' + type;
+      setTimeout(function() {
+        container.classList.remove('show');
+      }, 3000);
+    }
+
+    // Initialize on page load
+    initProfile();
+  </script>
+</body>
+</html>

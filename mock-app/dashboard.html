@@ -54,13 +54,14 @@
     .stat-card.reviewing .value { color: #9c27b0; }
     .stat-card.approved .value { color: #4caf50; }
     .stat-card.rejected .value { color: #f44336; }
+    .stat-card.supplement .value { color: #ff5722; }
     .stat-card.total .value { color: var(--color-primary); }
 
     .quick-actions {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      display: flex;
       gap: var(--spacing-lg);
       margin-bottom: var(--spacing-xl);
+      flex-wrap: wrap;
     }
     .action-btn {
       display: flex;
@@ -68,14 +69,15 @@
       align-items: center;
       justify-content: center;
       gap: var(--spacing-sm);
-      padding: 1.25rem;
+      padding: 1.25rem 2rem;
       background: var(--color-bg-white);
       border: 2px dashed var(--color-border-input);
       border-radius: var(--radius-lg);
       cursor: pointer;
       transition: all 0.2s;
-      text-decoration: none;
       color: var(--color-text);
+      font-family: inherit;
+      font-size: var(--font-size-base);
     }
     .action-btn:hover {
       border-color: var(--color-primary);
@@ -84,15 +86,184 @@
     .action-btn .icon {
       font-size: 1.5rem;
     }
-    .action-btn span {
-      font-size: var(--font-size-base);
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-xl);
+      margin-bottom: var(--spacing-xl);
+    }
+
+    @media (max-width: 1200px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .chart-container {
+      background: var(--color-bg-white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: var(--spacing-xl);
+    }
+    .chart-container h3 {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      margin-bottom: var(--spacing-lg);
+    }
+
+    /* Pie chart placeholder */
+    .pie-chart {
+      width: 200px;
+      height: 200px;
+      margin: 0 auto;
+      border-radius: 50%;
+      background: conic-gradient(
+        #ff9800 0deg 60deg,
+        #2196f3 60deg 120deg,
+        #9c27b0 120deg 180deg,
+        #4caf50 180deg 300deg,
+        #f44336 300deg 360deg
+      );
+      position: relative;
+    }
+    .pie-chart::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100px;
+      height: 100px;
+      background: var(--color-bg-white);
+      border-radius: 50%;
+    }
+
+    .chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-lg);
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      font-size: var(--font-size-sm);
+    }
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .legend-dot.draft { background: #ff9800; }
+    .legend-dot.pending { background: #2196f3; }
+    .legend-dot.reviewing { background: #9c27b0; }
+    .legend-dot.approved { background: #4caf50; }
+    .legend-dot.rejected { background: #f44336; }
+
+    /* Line chart placeholder */
+    .line-chart {
+      height: 200px;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-around;
+      padding: var(--spacing-lg) 0;
+      border-bottom: 2px solid var(--color-border);
+      border-left: 2px solid var(--color-border);
+    }
+    .line-chart-bar {
+      width: 40px;
+      background: var(--color-primary);
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      transition: height 0.3s;
+    }
+    .line-chart-labels {
+      display: flex;
+      justify-content: space-around;
+      margin-top: var(--spacing-sm);
+      font-size: var(--font-size-xs);
+      color: var(--color-text-secondary);
+    }
+
+    /* Expiring claims alert */
+    .expiring-claims {
+      background: var(--color-draft-bg);
+      border: 1px solid #ffcc80;
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      margin-bottom: var(--spacing-xl);
+    }
+    .expiring-claims h4 {
+      color: var(--color-draft-text);
+      margin-bottom: var(--spacing-md);
+    }
+    .expiring-claims ul {
+      list-style: none;
+      padding: 0;
+    }
+    .expiring-claims li {
+      padding: var(--spacing-sm) 0;
+      border-bottom: 1px solid #ffe0b2;
+    }
+    .expiring-claims li:last-child {
+      border-bottom: none;
+    }
+    .expiring-claims a {
+      color: var(--color-draft-text);
+      text-decoration: none;
+    }
+    .expiring-claims a:hover {
+      text-decoration: underline;
+    }
+
+    /* Refresh notification */
+    .refresh-notification {
+      position: fixed;
+      bottom: var(--spacing-xl);
+      right: var(--spacing-xl);
+      background: var(--color-approved-bg);
+      color: var(--color-approved-text);
+      padding: var(--spacing-md) var(--spacing-lg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      display: none;
+      z-index: 1000;
+    }
+    .refresh-notification.show {
+      display: block;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: var(--spacing-md);
+      align-items: center;
+    }
+
+    .refresh-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 0.4rem var(--spacing-lg);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: var(--font-size-sm);
+      transition: background 0.2s;
+    }
+    .refresh-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
     }
   </style>
 </head>
 <body>
   <header class="header">
-    <h1>🏥 TWPAS 癌症用藥事前審查系統</h1>
+    <h1>TWPAS</h1>
     <div class="header-right">
+      <div class="header-actions">
+        <button class="refresh-btn" onclick="refreshDashboard()">刷新</button>
+      </div>
       <span class="user-badge" id="user-role-badge"></span>
       <span id="username-display"></span>
       <button class="logout-btn" onclick="logout()">登出</button>
@@ -104,18 +275,19 @@
       <li><a href="/dashboard" class="active"><span class="icon">📊</span> 儀表板</a></li>
       <div class="menu-divider"></div>
       <div class="menu-label">案件管理</div>
-      <li><a href="/claim/new"><span class="icon">➕</span> 新增申請</a></li>
-      <li><a href="/claim"><span class="icon">📋</span> 案件列表</a></li>
-      <li><a href="/claim?status=draft"><span class="icon">📝</span> 草稿案件</a></li>
+      <li><a href="/claim-form"><span class="icon">➕</span> 新增申請案</a></li>
+      <li><a href="/claim"><span class="icon">📋</span> 申請案件管理</a></li>
+      <li><a href="/claim?status=draft"><span class="icon">📝</span> 我的草稿</a></li>
       <div class="menu-divider"></div>
       <div class="menu-label">資料管理</div>
-      <li><a href="/patient"><span class="icon">👤</span> 病患資料</a></li>
+      <li><a href="/patient"><span class="icon">👤</span> 病人資料管理</a></li>
       <li><a href="/valueset"><span class="icon">📚</span> 值集管理</a></li>
       <div class="menu-divider"></div>
       <div class="menu-label">系統功能</div>
       <li><a href="/fhir"><span class="icon">🔄</span> FHIR 轉換</a></li>
       <li><a href="/nhi-upload"><span class="icon">☁️</span> 健保上傳</a></li>
       <div class="menu-divider"></div>
+      <li><a href="/profile"><span class="icon">👤</span> 個人資料</a></li>
       <li><a href="/settings"><span class="icon">⚙️</span> 系統設定</a></li>
     </ul>
   </nav>
@@ -126,28 +298,44 @@
       <p>今天是 <span id="today-date"></span>，您有 <strong>3</strong> 件待處理案件</p>
     </div>
 
-    <div class="stats-grid">
-      <div class="stat-card draft" onclick="location.href='/claim?status=draft'">
-        <div class="label">草稿</div>
+    <!-- Expiring claims alert -->
+    <div class="expiring-claims" data-testid="expiring-claims">
+      <h4>即將到期案件提醒</h4>
+      <ul>
+        <li><a href="/claims/CASE-2026-0010">CASE-2026-0010 - 王○明 - 將於 3 天後到期</a></li>
+        <li><a href="/claims/CASE-2026-0011">CASE-2026-0011 - 李○華 - 將於 5 天後到期</a></li>
+      </ul>
+    </div>
+
+    <div class="stats-grid" data-testid="stats-cards">
+      <div class="stat-card draft" onclick="location.href='/claims?status=%E8%8D%89%E7%A8%BF'">
+        <div class="label">草稿案件</div>
         <div class="value">5</div>
       </div>
-      <div class="stat-card pending" onclick="location.href='/claim?status=pending'">
+      <div class="stat-card pending" onclick="location.href='/claims?status=%E5%BE%85%E5%AF%A9%E6%A0%B8'">
         <div class="label">待審核</div>
         <div class="value">12</div>
       </div>
-      <div class="stat-card reviewing" onclick="location.href='/claim?status=reviewing'">
+      <div class="stat-card reviewing" onclick="location.href='/claims?status=%E5%AF%A9%E6%A0%B8%E4%B8%AD'">
         <div class="label">審核中</div>
         <div class="value">8</div>
       </div>
-      <div class="stat-card approved" onclick="location.href='/claim?status=approved'">
+      <div class="stat-card approved" onclick="location.href='/claims?status=%E5%B7%B2%E6%A0%B8%E5%87%86'">
         <div class="label">已核准</div>
         <div class="value">45</div>
       </div>
-      <div class="stat-card rejected" onclick="location.href='/claim?status=rejected'">
+      <div class="stat-card rejected" onclick="location.href='/claims?status=%E5%B7%B2%E9%A7%81%E5%9B%9E'">
         <div class="label">已駁回</div>
         <div class="value">3</div>
       </div>
-      <div class="stat-card total" onclick="location.href='/claim'">
+      <div class="stat-card supplement" onclick="location.href='/claims?status=%E8%A3%9C%E4%BB%B6%E4%B8%AD'">
+        <div class="label">補件中</div>
+        <div class="value">2</div>
+      </div>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns: 1fr;">
+      <div class="stat-card total" onclick="location.href='/claims'">
         <div class="label">本月新增</div>
         <div class="value">25</div>
       </div>
@@ -155,85 +343,124 @@
 
     <h3 class="section-title">快速操作</h3>
     <div class="quick-actions">
-      <a href="/claim/new" class="action-btn">
+      <button type="button" class="action-btn" onclick="location.href='/claims/new'">
         <span class="icon">📝</span>
-        <span>新增申請案件</span>
-      </a>
-      <a href="/patient/new" class="action-btn">
+        <span>新增案件</span>
+      </button>
+      <button type="button" class="action-btn" onclick="location.href='/patients/new'">
         <span class="icon">👤</span>
-        <span>新增病患資料</span>
-      </a>
-      <a href="/claim?status=draft" class="action-btn">
-        <span class="icon">📋</span>
-        <span>繼續編輯草稿</span>
-      </a>
-      <a href="/nhi-upload" class="action-btn">
-        <span class="icon">☁️</span>
-        <span>上傳至健保署</span>
-      </a>
+        <span>新增病人</span>
+      </button>
+      <button type="button" class="action-btn" onclick="location.href='/claims'">
+        <span class="icon">🔍</span>
+        <span>查詢案件</span>
+      </button>
+    </div>
+
+    <div class="dashboard-grid">
+      <!-- Pie Chart -->
+      <div class="chart-container">
+        <h3>案件狀態分布</h3>
+        <div class="pie-chart" data-testid="status-pie-chart"></div>
+        <div class="chart-legend">
+          <div class="legend-item"><span class="legend-dot draft"></span>Draft</div>
+          <div class="legend-item"><span class="legend-dot pending"></span>Pending</div>
+          <div class="legend-item"><span class="legend-dot reviewing"></span>Reviewing</div>
+          <div class="legend-item"><span class="legend-dot approved"></span>Approved</div>
+          <div class="legend-item"><span class="legend-dot rejected"></span>Rejected</div>
+        </div>
+      </div>
+
+      <!-- Line Chart -->
+      <div class="chart-container">
+        <h3>案件趨勢</h3>
+        <div class="line-chart" data-testid="trend-line-chart">
+          <div class="line-chart-bar" style="height: 60%"></div>
+          <div class="line-chart-bar" style="height: 40%"></div>
+          <div class="line-chart-bar" style="height: 80%"></div>
+          <div class="line-chart-bar" style="height: 55%"></div>
+          <div class="line-chart-bar" style="height: 90%"></div>
+          <div class="line-chart-bar" style="height: 70%"></div>
+        </div>
+        <div class="line-chart-labels">
+          <span>9月</span>
+          <span>10月</span>
+          <span>11月</span>
+          <span>12月</span>
+          <span>1月</span>
+          <span>2月</span>
+        </div>
+      </div>
     </div>
 
     <div class="card">
       <div class="card-header">
         <h3>最近案件</h3>
-        <a href="/claim">查看全部 →</a>
+        <a href="/claims">查看全部</a>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>案件編號</th>
-            <th>病患姓名</th>
-            <th>申報類別</th>
-            <th>狀態</th>
-            <th>建立日期</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>CL-2026-0001</td>
-            <td>王○明</td>
-            <td>新申請</td>
-            <td><span class="status-badge status-draft">草稿</span></td>
-            <td>2026-02-02</td>
-            <td><a href="/claim/1" class="btn-view">編輯</a></td>
-          </tr>
-          <tr>
-            <td>CL-2026-0002</td>
-            <td>李○華</td>
-            <td>續用申請</td>
-            <td><span class="status-badge status-pending">待審核</span></td>
-            <td>2026-02-01</td>
-            <td><a href="/claim/2" class="btn-view">檢視</a></td>
-          </tr>
-          <tr>
-            <td>CL-2026-0003</td>
-            <td>張○成</td>
-            <td>新申請</td>
-            <td><span class="status-badge status-reviewing">審核中</span></td>
-            <td>2026-01-30</td>
-            <td><a href="/claim/3" class="btn-view">檢視</a></td>
-          </tr>
-          <tr>
-            <td>CL-2026-0004</td>
-            <td>陳○麗</td>
-            <td>療程變更</td>
-            <td><span class="status-badge status-approved">已核准</span></td>
-            <td>2026-01-28</td>
-            <td><a href="/claim/4" class="btn-view">檢視</a></td>
-          </tr>
-          <tr>
-            <td>CL-2026-0005</td>
-            <td>林○強</td>
-            <td>新申請</td>
-            <td><span class="status-badge status-rejected">已駁回</span></td>
-            <td>2026-01-25</td>
-            <td><a href="/claim/5" class="btn-view">檢視</a></td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="recent-claims-list" data-testid="recent-claims">
+        <table>
+          <thead>
+            <tr>
+              <th>案件編號</th>
+              <th>病患姓名</th>
+              <th>申報類別</th>
+              <th>狀態</th>
+              <th>建立日期</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>CASE-2026-0001</td>
+              <td>王○明</td>
+              <td>新申請</td>
+              <td><span class="status-badge status-draft" title="草稿">Draft</span></td>
+              <td>2026-02-02</td>
+              <td><a href="/claims/CASE-2026-0001" class="btn-view">編輯</a></td>
+            </tr>
+            <tr>
+              <td>CASE-2026-0002</td>
+              <td>李○華</td>
+              <td>續用申請</td>
+              <td><span class="status-badge status-pending" title="待審核">Pending</span></td>
+              <td>2026-02-01</td>
+              <td><a href="/claims/CASE-2026-0002" class="btn-view">檢視</a></td>
+            </tr>
+            <tr>
+              <td>CASE-2026-0003</td>
+              <td>張○成</td>
+              <td>新申請</td>
+              <td><span class="status-badge status-reviewing" title="審核中">In Review</span></td>
+              <td>2026-01-30</td>
+              <td><a href="/claims/CASE-2026-0003" class="btn-view">檢視</a></td>
+            </tr>
+            <tr>
+              <td>CASE-2026-0004</td>
+              <td>陳○麗</td>
+              <td>療程變更</td>
+              <td><span class="status-badge status-approved" title="已核准">Approved</span></td>
+              <td>2026-01-28</td>
+              <td><a href="/claims/CASE-2026-0004" class="btn-view">檢視</a></td>
+            </tr>
+            <tr>
+              <td>CASE-2026-0005</td>
+              <td>林○強</td>
+              <td>新申請</td>
+              <td><span class="status-badge status-rejected" title="已駁回">Rejected</span></td>
+              <td>2026-01-25</td>
+              <td><a href="/claims/CASE-2026-0005" class="btn-view">檢視</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </main>
+
+  <!-- Refresh notification -->
+  <div id="refresh-notification" class="refresh-notification">
+    資料已更新
+  </div>
 
   <script src="/shared.js"></script>
   <script>
@@ -241,6 +468,22 @@
     const user = displayUserInfo('username-display', 'user-role-badge', 'welcome-name');
     if (user) {
       document.getElementById('today-date').textContent = formatTodayZhTW();
+    }
+
+    // Refresh dashboard function
+    function refreshDashboard() {
+      // Show loading state (optional)
+      const notification = document.getElementById('refresh-notification');
+
+      // Simulate data refresh
+      setTimeout(() => {
+        notification.classList.add('show');
+
+        // Hide notification after 3 seconds
+        setTimeout(() => {
+          notification.classList.remove('show');
+        }, 3000);
+      }, 500);
     }
   </script>
 </body>

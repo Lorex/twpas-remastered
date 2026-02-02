@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>案件詳情 - TWPAS</title>
+  <title>申請表歷史記錄 - TWPAS</title>
   <link rel="stylesheet" href="/shared.css">
   <style>
     /* Page-specific styles */
@@ -30,6 +30,37 @@
       border: none;
       text-decoration: none;
       display: inline-block;
+    }
+
+    .patient-info-card {
+      background: var(--color-bg-white);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-xl);
+      margin-bottom: var(--spacing-lg);
+      box-shadow: var(--shadow-sm);
+    }
+    .patient-info-card h3 {
+      margin-bottom: var(--spacing-lg);
+      font-size: var(--font-size-lg);
+      color: var(--color-text);
+    }
+    .patient-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--spacing-lg);
+    }
+    .patient-info-item {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+    }
+    .patient-info-label {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+    }
+    .patient-info-value {
+      font-size: var(--font-size-lg);
+      font-weight: 500;
     }
 
     .timeline {
@@ -63,7 +94,7 @@
 </head>
 <body>
   <header class="header">
-    <h1>🏥 TWPAS 癌症用藥事前審查系統</h1>
+    <h1>TWPAS</h1>
     <div class="header-right">
       <span class="user-badge" id="user-role-badge"></span>
       <span id="username-display"></span>
@@ -73,145 +104,226 @@
 
   <nav class="sidebar">
     <ul class="sidebar-menu">
-      <li><a href="/dashboard"><span>📊</span> 儀表板</a></li>
+      <li><a href="/dashboard"><span class="icon">📊</span> 儀表板</a></li>
       <div class="menu-divider"></div>
       <div class="menu-label">案件管理</div>
-      <li><a href="/claim/new"><span>➕</span> 新增申請</a></li>
-      <li><a href="/claim"><span>📋</span> 案件列表</a></li>
+      <li><a href="/claim-form"><span class="icon">➕</span> 新增申請案</a></li>
+      <li><a href="/claim"><span class="icon">📋</span> 申請案件管理</a></li>
+      <li><a href="/claim?status=draft"><span class="icon">📝</span> 我的草稿</a></li>
       <div class="menu-divider"></div>
       <div class="menu-label">資料管理</div>
-      <li><a href="/patient"><span>👤</span> 病患資料</a></li>
-      <li><a href="/valueset"><span>📚</span> 值集管理</a></li>
+      <li><a href="/patient"><span class="icon">👤</span> 病人資料管理</a></li>
+      <li><a href="/valueset"><span class="icon">📚</span> 值集管理</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">系統功能</div>
+      <li><a href="/fhir"><span class="icon">🔄</span> FHIR 轉換</a></li>
+      <li><a href="/nhi-upload"><span class="icon">☁️</span> 健保上傳</a></li>
+      <div class="menu-divider"></div>
+      <li><a href="/profile"><span class="icon">👤</span> 個人資料</a></li>
+      <li><a href="/settings"><span class="icon">⚙️</span> 系統設定</a></li>
     </ul>
   </nav>
 
   <main class="main">
     <div class="breadcrumb">
-      <a href="/dashboard">首頁</a> / <a href="/claim">案件列表</a> / 案件詳情
+      <a href="/dashboard">首頁</a> / <a href="/patient">病人資料管理</a> / 申請表歷史記錄
     </div>
 
     <div class="page-header">
-      <h2>📋 案件詳情 - CL-2026-0001</h2>
-      <span class="status-badge status-draft">草稿</span>
+      <h2>申請表歷史記錄</h2>
     </div>
 
+    <!-- Patient Info Card -->
+    <div class="patient-info-card">
+      <h3>病人基本資訊</h3>
+      <div class="patient-info-grid">
+        <div class="patient-info-item">
+          <div class="patient-info-label">病歷號</div>
+          <div class="patient-info-value" id="patient-mrn">-</div>
+        </div>
+        <div class="patient-info-item">
+          <div class="patient-info-label">姓名</div>
+          <div class="patient-info-value" id="patient-name">-</div>
+        </div>
+        <div class="patient-info-item">
+          <div class="patient-info-label">身分證字號</div>
+          <div class="patient-info-value" id="patient-id">-</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Claims History Table -->
     <div class="card">
       <div class="card-header">
-        <span>📄 基本資訊</span>
-        <a href="/claim/1/edit" class="btn btn-primary">✏️ 編輯</a>
+        <span>申請案件歷史</span>
       </div>
-      <div class="card-body">
-        <div class="info-grid">
-          <div class="info-item">
-            <div class="info-label">案件編號</div>
-            <div class="info-value">CL-2026-0001</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">申報類別</div>
-            <div class="info-value">新申請</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">案件類型</div>
-            <div class="info-value">一般事前審查</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">建立日期</div>
-            <div class="info-value">2026-02-02</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">👤 病患資訊</div>
-      <div class="card-body">
-        <div class="info-grid">
-          <div class="info-item">
-            <div class="info-label">姓名</div>
-            <div class="info-value">王○明</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">身分證字號</div>
-            <div class="info-value">A123***789</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">性別</div>
-            <div class="info-value">男</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">年齡</div>
-            <div class="info-value">61 歲</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">🏥 診斷資訊</div>
-      <div class="card-body">
-        <div class="info-grid">
-          <div class="info-item">
-            <div class="info-label">主診斷 ICD-10</div>
-            <div class="info-value">C34.1</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">診斷名稱</div>
-            <div class="info-value">惡性腫瘤－右肺上葉</div>
-          </div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">病情摘要</div>
-          <div class="info-value">患者於 2025 年 12 月診斷為非小細胞肺癌 (NSCLC)，EGFR 基因突變陽性，分期為 IIIB。目前 ECOG 評分 1 分。</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">💊 申請藥物</div>
-      <div class="card-body">
-        <div class="info-grid">
-          <div class="info-item">
-            <div class="info-label">藥物名稱</div>
-            <div class="info-value">Pembrolizumab (Keytruda)</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">健保碼</div>
-            <div class="info-value">KC00123456</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">劑量</div>
-            <div class="info-value">200mg</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">申請天數</div>
-            <div class="info-value">21 天</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">📜 案件歷程</div>
-      <div class="card-body">
-        <div class="timeline">
-          <div class="timeline-item">
-            <div class="timeline-date">2026-02-02 14:30</div>
-            <div class="timeline-content">案件建立（草稿）- doctor01</div>
-          </div>
-        </div>
-      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>申請類別</th>
+            <th>申請次數</th>
+            <th>疾病別</th>
+            <th>申請藥品</th>
+            <th>申請日期</th>
+            <th>狀態</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="history-list"></tbody>
+      </table>
     </div>
 
     <div class="btn-row">
-      <a href="/claim" class="btn btn-secondary">← 返回列表</a>
-      <button class="btn btn-warning" onclick="alert('草稿已儲存')">💾 儲存</button>
-      <button class="btn btn-success" onclick="alert('功能開發中：送出審核')">📤 送出審核</button>
+      <button class="btn btn-secondary" onclick="goBack()">返回</button>
+      <a href="/claim-form" class="btn btn-primary">新增申請案</a>
     </div>
   </main>
 
   <script src="/shared.js"></script>
   <script>
-    displayUserInfo();
+    // Mock history data for different patients
+    const patientHistories = {
+      'E125123456': [
+        { applyType: '送核', count: 1, disease: 'G009', drug: 'Herceptin SC', applyDate: '2026-01-15', status: '草稿' },
+        { applyType: '送核', count: 2, disease: 'G009', drug: 'Kadcyla', applyDate: '2026-01-20', status: '待審核' },
+      ],
+      'A123456789': [
+        { applyType: '送核', count: 1, disease: 'C001', drug: 'Keytruda', applyDate: '2025-12-01', status: '已核准' },
+        { applyType: '續用', count: 1, disease: 'C001', drug: 'Keytruda', applyDate: '2026-01-15', status: '待審核' },
+      ],
+      'B234567890': [
+        { applyType: '送核', count: 1, disease: 'B002', drug: 'Opdivo', applyDate: '2025-11-15', status: '已核准' },
+      ],
+      'C345678901': [
+        { applyType: '送核', count: 1, disease: 'A003', drug: 'Tecentriq', applyDate: '2026-01-05', status: '審核中' },
+      ],
+      'D456789012': [],
+    };
+
+    function goBack() {
+      window.location.href = '/patient';
+    }
+
+    function loadPatientInfo() {
+      const params = getUrlParams();
+      const patientId = params.get('patient');
+      const mrn = params.get('mrn');
+      const name = params.get('name');
+
+      if (mrn) {
+        document.getElementById('patient-mrn').textContent = mrn;
+      }
+      if (name) {
+        document.getElementById('patient-name').textContent = decodeURIComponent(name);
+      }
+      if (patientId) {
+        document.getElementById('patient-id').textContent = patientId;
+      }
+
+      return patientId;
+    }
+
+    function renderHistory(patientId) {
+      const tbody = document.getElementById('history-list');
+      tbody.textContent = '';
+
+      const history = patientHistories[patientId] || [];
+
+      if (history.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 7;
+        td.textContent = '無申請案件記錄';
+        td.style.textAlign = 'center';
+        td.style.padding = '2rem';
+        td.style.color = 'var(--color-text-secondary)';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      history.forEach(h => {
+        const tr = document.createElement('tr');
+
+        // Apply type
+        const typeTd = document.createElement('td');
+        typeTd.textContent = h.applyType;
+        tr.appendChild(typeTd);
+
+        // Count
+        const countTd = document.createElement('td');
+        countTd.textContent = h.count;
+        tr.appendChild(countTd);
+
+        // Disease
+        const diseaseTd = document.createElement('td');
+        diseaseTd.textContent = h.disease;
+        tr.appendChild(diseaseTd);
+
+        // Drug
+        const drugTd = document.createElement('td');
+        drugTd.textContent = h.drug;
+        tr.appendChild(drugTd);
+
+        // Apply date
+        const dateTd = document.createElement('td');
+        dateTd.textContent = h.applyDate;
+        tr.appendChild(dateTd);
+
+        // Status
+        const statusTd = document.createElement('td');
+        const statusBadge = document.createElement('span');
+        statusBadge.className = 'status-badge';
+        switch (h.status) {
+          case '草稿':
+            statusBadge.classList.add('status-draft');
+            break;
+          case '待審核':
+            statusBadge.classList.add('status-pending');
+            break;
+          case '審核中':
+            statusBadge.classList.add('status-reviewing');
+            break;
+          case '已核准':
+            statusBadge.classList.add('status-approved');
+            break;
+          case '已駁回':
+            statusBadge.classList.add('status-rejected');
+            break;
+        }
+        statusBadge.textContent = h.status;
+        statusTd.appendChild(statusBadge);
+        tr.appendChild(statusTd);
+
+        // Actions
+        const actionTd = document.createElement('td');
+        if (h.status === '草稿') {
+          const editBtn = document.createElement('a');
+          editBtn.href = '/claim-form?edit=true';
+          editBtn.className = 'btn-action btn-edit';
+          editBtn.textContent = '編輯';
+          actionTd.appendChild(editBtn);
+        }
+        const viewBtn = document.createElement('a');
+        viewBtn.href = '#';
+        viewBtn.className = 'btn-action btn-view';
+        viewBtn.textContent = '檢視';
+        viewBtn.onclick = (e) => { e.preventDefault(); alert('檢視功能開發中'); };
+        actionTd.appendChild(viewBtn);
+        tr.appendChild(actionTd);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      const user = displayUserInfo();
+      if (user) {
+        const patientId = loadPatientInfo();
+        renderHistory(patientId);
+      }
+    });
   </script>
 </body>
 </html>

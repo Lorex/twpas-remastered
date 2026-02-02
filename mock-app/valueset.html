@@ -52,19 +52,23 @@
 
   <nav class="sidebar">
     <ul class="sidebar-menu">
-      <li><a href="/dashboard"><span>📊</span> 儀表板</a></li>
+      <li><a href="/dashboard"><span class="icon">📊</span> 儀表板</a></li>
       <div class="menu-divider"></div>
       <div class="menu-label">案件管理</div>
-      <li><a href="/claim/new"><span>➕</span> 新增申請</a></li>
-      <li><a href="/claim"><span>📋</span> 案件列表</a></li>
+      <li><a href="/claim-form"><span class="icon">➕</span> 新增申請案</a></li>
+      <li><a href="/claim"><span class="icon">📋</span> 申請案件管理</a></li>
+      <li><a href="/claim?status=draft"><span class="icon">📝</span> 我的草稿</a></li>
       <div class="menu-divider"></div>
       <div class="menu-label">資料管理</div>
-      <li><a href="/patient"><span>👤</span> 病患資料</a></li>
-      <li><a href="/valueset" class="active"><span>📚</span> 值集管理</a></li>
+      <li><a href="/patient"><span class="icon">👤</span> 病人資料管理</a></li>
+      <li><a href="/valueset" class="active"><span class="icon">📚</span> 值集管理</a></li>
       <div class="menu-divider"></div>
       <div class="menu-label">系統功能</div>
-      <li><a href="/fhir"><span>🔄</span> FHIR 轉換</a></li>
-      <li><a href="/nhi-upload"><span>☁️</span> 健保上傳</a></li>
+      <li><a href="/fhir"><span class="icon">🔄</span> FHIR 轉換</a></li>
+      <li><a href="/nhi-upload"><span class="icon">☁️</span> 健保上傳</a></li>
+      <div class="menu-divider"></div>
+      <li><a href="/profile"><span class="icon">👤</span> 個人資料</a></li>
+      <li><a href="/settings"><span class="icon">⚙️</span> 系統設定</a></li>
     </ul>
   </nav>
 

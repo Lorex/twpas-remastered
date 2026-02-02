@@ -25,20 +25,27 @@ const routes = {
   '/': '/index.html',
   '/login': '/login.html',
   '/dashboard': '/dashboard.html',
+  '/profile': '/profile.html',
   '/register': '/register.html',
   '/patient': '/patient.html',
   '/patient/new': '/patient.html',
   '/claim': '/claim.html',
+  '/claims': '/claim.html',
+  '/claims/new': '/claim-form.html',
   '/claim/new': '/claim-form.html',
+  '/claim-form': '/claim-form.html',
+  '/claim-detail': '/claim-detail.html',
   '/valueset': '/valueset.html',
   '/fhir': '/fhir.html',
   '/nhi-upload': '/nhi-upload.html',
   '/settings': '/settings.html',
+  '/patients/new': '/patient.html',
 };
 
 // Dynamic routes (patterns)
 const dynamicRoutes = [
   { pattern: /^\/claim\/(\d+)(\/edit)?$/, file: '/claim-detail.html' },
+  { pattern: /^\/claims\/CASE-[0-9-]+$/, file: '/claim-detail.html' },
   { pattern: /^\/patient\/(.+)$/, file: '/patient.html' },
 ];
 

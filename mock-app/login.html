@@ -54,6 +54,24 @@
     .error.show {
       display: block;
     }
+    .password-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .password-wrapper input {
+      flex: 1;
+      padding-right: 40px;
+    }
+    .toggle-password {
+      position: absolute;
+      right: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      font-size: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -62,12 +80,15 @@
     <div id="error-message" class="error"></div>
     <form id="login-form">
       <div class="form-group">
-        <label for="username">帳號</label>
+        <label for="username">* 帳號:</label>
         <input type="text" id="username" name="username" placeholder="請輸入帳號">
       </div>
       <div class="form-group">
-        <label for="password">密碼</label>
-        <input type="password" id="password" name="password" placeholder="請輸入密碼">
+        <label for="password">* 密碼:</label>
+        <div class="password-wrapper">
+          <input type="password" id="password" name="password" placeholder="請輸入密碼">
+          <button type="button" class="toggle-password" aria-label="Toggle visibility" title="Toggle" onclick="togglePasswordVisibility()">👁</button>
+        </div>
       </div>
       <button type="submit">登入</button>
     </form>
@@ -77,11 +98,25 @@
   <script>
     // Mock user database
     const users = {
-      'doctor01': { password: 'Pass1234!', role: '醫師', status: '啟用' },
-      'pharmacist01': { password: 'Pass1234!', role: '藥師', status: '啟用' },
-      'admin01': { password: 'Pass1234!', role: '管理員', status: '啟用' },
-      'inactive_user': { password: 'Pass1234!', role: '醫師', status: '停用' },
+      'TWPASTWPAS': { password: 'TWPASTWPAS', role: '醫師', name: '洪主任', department: '乳癌', status: '啟用' },
+      'doctor01': { password: 'Pass1234!', role: '醫師', name: '張醫師', department: '腫瘤科', status: '啟用' },
+      'pharmacist01': { password: 'Pass1234!', role: '藥師', name: '李藥師', department: '藥劑部', status: '啟用' },
+      'admin01': { password: 'Pass1234!', role: '管理員', name: '陳管理員', department: '資訊室', status: '啟用' },
+      'inactive_user': { password: 'Pass1234!', role: '醫師', name: '王護理師', department: '護理部', status: '停用' },
     };
+
+    // Toggle password visibility
+    function togglePasswordVisibility() {
+      const passwordInput = document.getElementById('password');
+      const toggleBtn = document.querySelector('.toggle-password');
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleBtn.setAttribute('aria-label', 'Toggle visibility');
+      } else {
+        passwordInput.type = 'password';
+        toggleBtn.setAttribute('aria-label', 'Toggle visibility');
+      }
+    }
 
     // Failed login attempts tracking - use localStorage for persistence
     function getFailedAttempts(username) {
@@ -171,7 +206,12 @@
       }
 
       // Login success - store session (both cookie and sessionStorage for testing)
-      sessionStorage.setItem('user', JSON.stringify({ username, role: user.role }));
+      sessionStorage.setItem('user', JSON.stringify({
+        username,
+        role: user.role,
+        name: user.name,
+        department: user.department
+      }));
       sessionStorage.setItem('loginTime', Date.now().toString());
       // Set auth cookie for session management
       document.cookie = `twpas_auth=${username}; path=/; SameSite=Lax`;

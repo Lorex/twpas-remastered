@@ -3,12 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>案件列表 - TWPAS</title>
+  <title>申請案件管理 - TWPAS</title>
   <link rel="stylesheet" href="/shared.css">
+  <style>
+    /* Tabs styling */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--color-border);
+      margin-bottom: var(--spacing-lg);
+      background: var(--color-bg-white);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      overflow-x: auto;
+    }
+    .tabs [role="tab"] {
+      padding: var(--spacing-md) var(--spacing-lg);
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-base);
+      white-space: nowrap;
+      position: relative;
+      transition: color 0.2s;
+    }
+    .tabs [role="tab"]:hover {
+      color: var(--color-primary);
+      background: var(--color-bg-hover);
+    }
+    .tabs [role="tab"][aria-selected="true"] {
+      color: var(--color-primary);
+      font-weight: 500;
+    }
+    .tabs [role="tab"][aria-selected="true"]::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--color-primary);
+    }
+    /* Filter section */
+    .advanced-filter {
+      background: var(--color-bg-white);
+      padding: var(--spacing-lg);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--spacing-lg);
+      box-shadow: var(--shadow-sm);
+    }
+    .filter-title {
+      font-weight: 500;
+      margin-bottom: var(--spacing-md);
+      color: var(--color-text);
+    }
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-lg);
+      align-items: flex-end;
+    }
+    .filter-group-checkbox {
+      display: flex;
+      gap: var(--spacing-md);
+      align-items: center;
+    }
+    .filter-group-checkbox label {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      cursor: pointer;
+    }
+    .filter-group-checkbox input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+    }
+    .quick-search {
+      margin-left: auto;
+    }
+    .quick-search input {
+      padding: var(--spacing-sm) var(--spacing-md);
+      border: 1px solid var(--color-border-input);
+      border-radius: var(--radius-sm);
+      width: 200px;
+    }
+    .filter-buttons {
+      display: flex;
+      gap: var(--spacing-sm);
+    }
+    /* Empty state */
+    .no-data {
+      text-align: center;
+      padding: 3rem;
+      color: var(--color-text-secondary);
+    }
+  </style>
 </head>
 <body>
   <header class="header">
-    <h1>🏥 TWPAS 癌症用藥事前審查系統</h1>
+    <h1>TWPAS 癌症用藥事前審查系統</h1>
     <div class="header-right">
       <span class="user-badge" id="user-role-badge"></span>
       <span id="username-display"></span>
@@ -21,70 +113,148 @@
       <li><a href="/dashboard"><span class="icon">📊</span> 儀表板</a></li>
       <div class="menu-divider"></div>
       <div class="menu-label">案件管理</div>
-      <li><a href="/claim/new"><span class="icon">➕</span> 新增申請</a></li>
-      <li><a href="/claim" class="active"><span class="icon">📋</span> 案件列表</a></li>
-      <li><a href="/claim?status=draft"><span class="icon">📝</span> 草稿案件</a></li>
+      <li><a href="/claim-form"><span class="icon">➕</span> 新增申請案</a></li>
+      <li><a href="/claim" id="nav-claim-list"><span class="icon">📋</span> 申請案件管理</a></li>
+      <li><a href="/claim?status=draft" id="nav-my-drafts"><span class="icon">📝</span> 我的草稿</a></li>
       <div class="menu-divider"></div>
       <div class="menu-label">資料管理</div>
-      <li><a href="/patient"><span class="icon">👤</span> 病患資料</a></li>
+      <li><a href="/patient"><span class="icon">👤</span> 病人資料管理</a></li>
       <li><a href="/valueset"><span class="icon">📚</span> 值集管理</a></li>
       <div class="menu-divider"></div>
       <div class="menu-label">系統功能</div>
       <li><a href="/fhir"><span class="icon">🔄</span> FHIR 轉換</a></li>
       <li><a href="/nhi-upload"><span class="icon">☁️</span> 健保上傳</a></li>
+      <div class="menu-divider"></div>
+      <li><a href="/profile"><span class="icon">👤</span> 個人資料</a></li>
+      <li><a href="/settings"><span class="icon">⚙️</span> 系統設定</a></li>
     </ul>
   </nav>
 
   <main class="main">
     <div class="page-header">
-      <h2>📋 案件列表</h2>
-      <a href="/claim/new" class="btn-primary">➕ 新增申請</a>
+      <h2 id="page-title">申請案件管理</h2>
+      <a href="/claim-form" class="btn-primary">新增申請案</a>
     </div>
 
-    <div class="filters">
-      <div class="filter-group">
-        <label>狀態</label>
-        <select id="filter-status" onchange="applyFilters()">
-          <option value="">全部</option>
-          <option value="draft">草稿</option>
-          <option value="pending">待審核</option>
-          <option value="reviewing">審核中</option>
-          <option value="approved">已核准</option>
-          <option value="rejected">已駁回</option>
-        </select>
+    <!-- Advanced Filter Section -->
+    <div class="advanced-filter">
+      <div class="filter-title">進階篩選</div>
+      <div class="filter-row">
+        <div class="filter-group-checkbox">
+          <label>
+            <input type="checkbox" id="filter-songhe" value="送核">
+            <span>送核</span>
+          </label>
+          <label>
+            <input type="checkbox" id="filter-bujian" value="補件">
+            <span>補件</span>
+          </label>
+          <label>
+            <input type="checkbox" id="filter-shenfu" value="申復">
+            <span>申復</span>
+          </label>
+          <label>
+            <input type="checkbox" id="filter-zhengyi" value="爭議審議">
+            <span>爭議審議</span>
+          </label>
+          <label>
+            <input type="checkbox" id="filter-yidong" value="資料異動">
+            <span>資料異動</span>
+          </label>
+        </div>
+        <div class="filter-group">
+          <label for="filter-mrn">病歷號</label>
+          <input type="text" id="filter-mrn" placeholder="輸入病歷號">
+        </div>
+        <div class="filter-group">
+          <label for="filter-idnumber">身份證字號</label>
+          <input type="text" id="filter-idnumber" placeholder="輸入身份證字號">
+        </div>
+        <div class="filter-group">
+          <label for="filter-name">姓名</label>
+          <input type="text" id="filter-name" placeholder="輸入姓名">
+        </div>
+        <div class="filter-group">
+          <label for="filter-disease">疾病別</label>
+          <select id="filter-disease">
+            <option value="">請選擇</option>
+            <option value="G009">G009</option>
+            <option value="G010">G010</option>
+            <option value="G011">G011</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-drug">申請藥品</label>
+          <select id="filter-drug">
+            <option value="">請選擇</option>
+            <option value="Herceptin SC">Herceptin SC</option>
+            <option value="Kadcyla">Kadcyla</option>
+            <option value="Perjeta">Perjeta</option>
+            <option value="Phesgo">Phesgo</option>
+            <option value="Trastuzumab">Trastuzumab</option>
+          </select>
+        </div>
       </div>
-      <div class="filter-group">
-        <label>申報類別</label>
-        <select id="filter-type" onchange="applyFilters()">
-          <option value="">全部</option>
-          <option value="new">新申請</option>
-          <option value="continue">續用申請</option>
-          <option value="change">療程變更</option>
-        </select>
+      <div class="filter-row" style="margin-top: var(--spacing-md);">
+        <div class="filter-group">
+          <label for="filter-image-date-start">影像學檢查日期起</label>
+          <input type="date" id="filter-image-date-start">
+        </div>
+        <div class="filter-group">
+          <label for="filter-image-date-end">影像學檢查日期迄</label>
+          <input type="date" id="filter-image-date-end">
+        </div>
+        <div class="filter-group">
+          <label for="filter-apply-date-start">申請日期起</label>
+          <input type="date" id="filter-apply-date-start">
+        </div>
+        <div class="filter-group">
+          <label for="filter-apply-date-end">申請日期迄</label>
+          <input type="date" id="filter-apply-date-end">
+        </div>
+        <div class="filter-buttons">
+          <button class="btn-primary" onclick="applyFilters()">查詢</button>
+          <button class="btn-secondary" onclick="clearFilters()">清除</button>
+        </div>
+        <div class="quick-search">
+          <input type="text" id="quick-search" placeholder="快速搜尋..." oninput="quickSearch()">
+        </div>
       </div>
-      <div class="filter-group">
-        <label>病患姓名</label>
-        <input type="text" id="filter-patient" placeholder="輸入姓名搜尋" oninput="applyFilters()">
-      </div>
+    </div>
+
+    <!-- Status Tabs -->
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-status="草稿" onclick="selectTab(this)">草稿</button>
+      <button role="tab" aria-selected="false" data-status="待審核" onclick="selectTab(this)">待審核</button>
+      <button role="tab" aria-selected="false" data-status="送審中" onclick="selectTab(this)">送審中</button>
+      <button role="tab" aria-selected="false" data-status="通過" onclick="selectTab(this)">通過</button>
+      <button role="tab" aria-selected="false" data-status="未通過" onclick="selectTab(this)">未通過</button>
+      <button role="tab" aria-selected="false" data-status="爭審" onclick="selectTab(this)">爭審</button>
+      <button role="tab" aria-selected="false" data-status="續件提醒" onclick="selectTab(this)">續件提醒</button>
+      <button role="tab" aria-selected="false" data-status="結案" onclick="selectTab(this)">結案</button>
     </div>
 
     <div class="card">
       <table>
         <thead>
           <tr>
-            <th>案件編號</th>
-            <th>病患姓名</th>
-            <th>身分證字號</th>
-            <th>申報類別</th>
-            <th>藥物名稱</th>
-            <th>狀態</th>
+            <th>申請類別</th>
+            <th>申請次數</th>
+            <th>病歷號</th>
+            <th>姓名</th>
+            <th>身份證字號</th>
+            <th>疾病別</th>
+            <th>申請藥品</th>
+            <th>申請日期</th>
+            <th>影像學檢查</th>
             <th>建立日期</th>
             <th>操作</th>
           </tr>
         </thead>
         <tbody id="claim-list"></tbody>
       </table>
-      <div class="pagination">
+      <div id="no-data" class="no-data" style="display: none;">無資料</div>
+      <div class="pagination" id="pagination">
         <button>«</button>
         <button class="active">1</button>
         <button>2</button>
@@ -97,102 +267,199 @@
   <script>
     // Mock data
     const claims = [
-      { id: 1, caseNumber: 'CL-2026-0001', patientName: '王○明', idNumber: 'A123***789', type: '新申請', drug: 'Pembrolizumab', status: 'draft', date: '2026-02-02' },
-      { id: 2, caseNumber: 'CL-2026-0002', patientName: '李○華', idNumber: 'B234***890', type: '續用申請', drug: 'Nivolumab', status: 'pending', date: '2026-02-01' },
-      { id: 3, caseNumber: 'CL-2026-0003', patientName: '張○成', idNumber: 'C345***901', type: '新申請', drug: 'Atezolizumab', status: 'reviewing', date: '2026-01-30' },
-      { id: 4, caseNumber: 'CL-2026-0004', patientName: '陳○麗', idNumber: 'D456***012', type: '療程變更', drug: 'Durvalumab', status: 'approved', date: '2026-01-28' },
-      { id: 5, caseNumber: 'CL-2026-0005', patientName: '林○強', idNumber: 'E567***123', type: '新申請', drug: 'Ipilimumab', status: 'rejected', date: '2026-01-25' },
-      { id: 6, caseNumber: 'CL-2026-0006', patientName: '黃○燕', idNumber: 'F678***234', type: '新申請', drug: 'Trastuzumab', status: 'draft', date: '2026-01-24' },
-      { id: 7, caseNumber: 'CL-2026-0007', patientName: '劉○偉', idNumber: 'G789***345', type: '續用申請', drug: 'Bevacizumab', status: 'approved', date: '2026-01-22' },
-      { id: 8, caseNumber: 'CL-2026-0008', patientName: '蔡○芬', idNumber: 'H890***456', type: '新申請', drug: 'Cetuximab', status: 'pending', date: '2026-01-20' },
+      { applyType: '送核', count: 1, mrn: '1234567', name: '測試病人', idNumber: 'E125123456', disease: 'G009', drug: 'Herceptin SC', applyDate: '2025-09-23', imageDate: '2026-02-02', createDate: '2025-09-20', status: '草稿' },
+      { applyType: '送核', count: 2, mrn: '1234567', name: '測試病人', idNumber: 'E125123456', disease: 'G009', drug: 'Kadcyla', applyDate: '2025-10-15', imageDate: '2025-10-10', createDate: '2025-10-12', status: '待審核' },
+      { applyType: '補件', count: 1, mrn: '2345678', name: '王小明', idNumber: 'A123456789', disease: 'G010', drug: 'Perjeta', applyDate: '2025-11-01', imageDate: '2025-10-28', createDate: '2025-10-28', status: '送審中' },
+      { applyType: '申復', count: 1, mrn: '3456789', name: '李小華', idNumber: 'B234567890', disease: 'G009', drug: 'Trastuzumab', applyDate: '2025-08-15', imageDate: '2025-08-10', createDate: '2025-08-10', status: '通過' },
+      { applyType: '送核', count: 3, mrn: '4567890', name: '張大同', idNumber: 'C345678901', disease: 'G011', drug: 'Phesgo', applyDate: '2025-07-20', imageDate: '2025-07-18', createDate: '2025-07-15', status: '未通過' },
+      { applyType: '送核', count: 1, mrn: '5678901', name: '陳美麗', idNumber: 'D456789012', disease: 'G009', drug: 'Herceptin SC', applyDate: '2025-06-01', imageDate: '2025-05-28', createDate: '2025-05-25', status: '爭審' },
+      { applyType: '送核', count: 2, mrn: '6789012', name: '林志強', idNumber: 'E567890123', disease: 'G010', drug: 'Kadcyla', applyDate: '2025-04-01', imageDate: '2025-03-28', createDate: '2025-03-25', status: '續件提醒' },
+      { applyType: '送核', count: 1, mrn: '7890123', name: '黃小燕', idNumber: 'F678901234', disease: 'G011', drug: 'Perjeta', applyDate: '2025-02-01', imageDate: '2025-01-28', createDate: '2025-01-25', status: '結案' },
     ];
 
-    const statusLabels = { draft: '草稿', pending: '待審核', reviewing: '審核中', approved: '已核准', rejected: '已駁回' };
+    let currentStatus = '草稿';
+    let filteredClaims = [];
+
+    function selectTab(tab) {
+      // Update tab states
+      document.querySelectorAll('[role="tab"]').forEach(t => t.setAttribute('aria-selected', 'false'));
+      tab.setAttribute('aria-selected', 'true');
+      currentStatus = tab.dataset.status;
+      applyFilters();
+    }
 
     function renderClaims(data) {
       const tbody = document.getElementById('claim-list');
+      const noData = document.getElementById('no-data');
       tbody.textContent = '';
 
       if (data.length === 0) {
-        const tr = document.createElement('tr');
-        const td = document.createElement('td');
-        td.colSpan = 8;
-        td.className = 'empty-state';
-        td.textContent = '沒有符合條件的案件';
-        tr.appendChild(td);
-        tbody.appendChild(tr);
+        noData.style.display = 'block';
+        document.getElementById('pagination').style.display = 'none';
         return;
       }
 
+      noData.style.display = 'none';
+      document.getElementById('pagination').style.display = 'flex';
+
       data.forEach(c => {
         const tr = document.createElement('tr');
-        tr.onclick = () => window.location.href = '/claim/' + c.id;
+        tr.onclick = () => window.location.href = '/claim-detail';
 
-        const cells = [c.caseNumber, c.patientName, c.idNumber, c.type, c.drug];
+        const cells = [c.applyType, c.count, c.mrn, c.name, c.idNumber, c.disease, c.drug, c.applyDate, c.imageDate, c.createDate];
         cells.forEach(text => {
           const td = document.createElement('td');
           td.textContent = text;
           tr.appendChild(td);
         });
 
-        // Status cell
-        const statusTd = document.createElement('td');
-        const badge = document.createElement('span');
-        badge.className = 'status-badge status-' + c.status;
-        badge.textContent = statusLabels[c.status];
-        statusTd.appendChild(badge);
-        tr.appendChild(statusTd);
-
-        // Date cell
-        const dateTd = document.createElement('td');
-        dateTd.textContent = c.date;
-        tr.appendChild(dateTd);
-
         // Actions cell
         const actionTd = document.createElement('td');
-        if (c.status === 'draft') {
-          const editBtn = document.createElement('a');
-          editBtn.href = '/claim/' + c.id + '/edit';
-          editBtn.className = 'btn-action btn-edit';
-          editBtn.textContent = '編輯';
-          editBtn.onclick = e => e.stopPropagation();
-          actionTd.appendChild(editBtn);
-        }
-        const viewBtn = document.createElement('a');
-        viewBtn.href = '/claim/' + c.id;
-        viewBtn.className = 'btn-action btn-view';
-        viewBtn.textContent = '檢視';
-        viewBtn.onclick = e => e.stopPropagation();
-        actionTd.appendChild(viewBtn);
-        tr.appendChild(actionTd);
 
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn-action btn-edit';
+        editBtn.textContent = '編輯';
+        editBtn.onclick = e => { e.stopPropagation(); window.location.href = '/claim-form?edit=1'; };
+        // Disable edit for non-draft
+        if (c.status !== '草稿') {
+          editBtn.disabled = true;
+          editBtn.style.opacity = '0.5';
+          editBtn.style.cursor = 'not-allowed';
+        }
+        actionTd.appendChild(editBtn);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn-action btn-delete';
+        deleteBtn.textContent = '刪除';
+        deleteBtn.onclick = e => { e.stopPropagation(); confirmDelete(); };
+        // Disable delete for non-draft
+        if (c.status !== '草稿') {
+          deleteBtn.disabled = true;
+          deleteBtn.style.opacity = '0.5';
+          deleteBtn.style.cursor = 'not-allowed';
+        }
+        actionTd.appendChild(deleteBtn);
+
+        tr.appendChild(actionTd);
         tbody.appendChild(tr);
       });
     }
 
     function applyFilters() {
-      const status = document.getElementById('filter-status').value;
-      const type = document.getElementById('filter-type').value;
-      const patient = document.getElementById('filter-patient').value.toLowerCase();
+      // Filter by status tab
+      let result = claims.filter(c => c.status === currentStatus);
 
-      let filtered = claims;
-      if (status) filtered = filtered.filter(c => c.status === status);
-      if (type) {
-        const typeMap = { 'new': '新申請', 'continue': '續用申請', 'change': '療程變更' };
-        filtered = filtered.filter(c => c.type === typeMap[type]);
+      // Filter by apply type checkboxes
+      const checkedTypes = [];
+      if (document.getElementById('filter-songhe').checked) checkedTypes.push('送核');
+      if (document.getElementById('filter-bujian').checked) checkedTypes.push('補件');
+      if (document.getElementById('filter-shenfu').checked) checkedTypes.push('申復');
+      if (document.getElementById('filter-zhengyi').checked) checkedTypes.push('爭議審議');
+      if (document.getElementById('filter-yidong').checked) checkedTypes.push('資料異動');
+
+      if (checkedTypes.length > 0) {
+        result = result.filter(c => checkedTypes.includes(c.applyType));
       }
-      if (patient) filtered = filtered.filter(c => c.patientName.includes(patient));
 
-      renderClaims(filtered);
+      // Filter by MRN
+      const mrn = document.getElementById('filter-mrn').value.trim();
+      if (mrn) {
+        result = result.filter(c => c.mrn.includes(mrn));
+      }
+
+      // Filter by ID Number
+      const idNumber = document.getElementById('filter-idnumber').value.trim();
+      if (idNumber) {
+        result = result.filter(c => c.idNumber.includes(idNumber));
+      }
+
+      // Filter by Name
+      const name = document.getElementById('filter-name').value.trim();
+      if (name) {
+        result = result.filter(c => c.name.includes(name));
+      }
+
+      // Filter by Disease
+      const disease = document.getElementById('filter-disease').value;
+      if (disease) {
+        result = result.filter(c => c.disease === disease);
+      }
+
+      // Filter by Drug
+      const drug = document.getElementById('filter-drug').value;
+      if (drug) {
+        result = result.filter(c => c.drug === drug);
+      }
+
+      filteredClaims = result;
+      renderClaims(result);
+    }
+
+    function clearFilters() {
+      document.getElementById('filter-songhe').checked = false;
+      document.getElementById('filter-bujian').checked = false;
+      document.getElementById('filter-shenfu').checked = false;
+      document.getElementById('filter-zhengyi').checked = false;
+      document.getElementById('filter-yidong').checked = false;
+      document.getElementById('filter-mrn').value = '';
+      document.getElementById('filter-idnumber').value = '';
+      document.getElementById('filter-name').value = '';
+      document.getElementById('filter-disease').value = '';
+      document.getElementById('filter-drug').value = '';
+      document.getElementById('filter-image-date-start').value = '';
+      document.getElementById('filter-image-date-end').value = '';
+      document.getElementById('filter-apply-date-start').value = '';
+      document.getElementById('filter-apply-date-end').value = '';
+      document.getElementById('quick-search').value = '';
+      applyFilters();
+    }
+
+    function quickSearch() {
+      const query = document.getElementById('quick-search').value.toLowerCase().trim();
+      if (!query) {
+        applyFilters();
+        return;
+      }
+
+      let result = claims.filter(c => c.status === currentStatus);
+      result = result.filter(c =>
+        c.name.toLowerCase().includes(query) ||
+        c.mrn.includes(query) ||
+        c.idNumber.toLowerCase().includes(query) ||
+        c.drug.toLowerCase().includes(query)
+      );
+      renderClaims(result);
+    }
+
+    function confirmDelete() {
+      if (confirm('此操作無法復原，確定要刪除此申請案件嗎？')) {
+        alert('申請案件已刪除');
+        applyFilters();
+      }
+    }
+
+    // Set sidebar active state based on URL
+    function setSidebarActive() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const status = urlParams.get('status');
+
+      if (status === 'draft') {
+        document.getElementById('nav-my-drafts').classList.add('active');
+        document.getElementById('page-title').textContent = '我的草稿';
+        // Also select the draft tab
+        const draftTab = document.querySelector('[data-status="草稿"]');
+        if (draftTab) {
+          selectTab(draftTab);
+        }
+      } else {
+        document.getElementById('nav-claim-list').classList.add('active');
+      }
     }
 
     // Initialize page
     const user = displayUserInfo();
     if (user) {
-      const params = getUrlParams();
-      if (params.get('status')) {
-        document.getElementById('filter-status').value = params.get('status');
-      }
+      setSidebarActive();
       applyFilters();
     }
   </script>

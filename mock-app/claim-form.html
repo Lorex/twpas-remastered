@@ -3,99 +3,154 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>新增申請案件 - TWPAS</title>
+  <title>新增申請案 - TWPAS</title>
   <link rel="stylesheet" href="/shared.css">
   <style>
-    /* Page-specific styles */
-    .breadcrumb {
-      font-size: var(--font-size-sm);
-      color: var(--color-text-secondary);
-      margin-bottom: var(--spacing-lg);
-    }
-    .breadcrumb a {
-      color: var(--color-primary);
-      text-decoration: none;
-    }
-
-    .steps {
+    /* Tabs styling */
+    .form-tabs {
       display: flex;
-      margin-bottom: var(--spacing-xl);
+      border-bottom: 1px solid var(--color-border);
+      margin-bottom: var(--spacing-lg);
       background: var(--color-bg-white);
-      border-radius: var(--radius-lg);
-      padding: var(--spacing-lg);
-      box-shadow: var(--shadow-sm);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      overflow-x: auto;
     }
-    .step {
-      flex: 1;
-      text-align: center;
-      position: relative;
-    }
-    .step::after {
-      content: '';
-      position: absolute;
-      top: 15px;
-      right: -50%;
-      width: 100%;
-      height: 2px;
-      background: var(--color-border-input);
-      z-index: 0;
-    }
-    .step:last-child::after {
-      display: none;
-    }
-    .step-number {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background: var(--color-border-input);
+    .form-tabs [role="tab"] {
+      padding: var(--spacing-md) var(--spacing-lg);
+      border: none;
+      background: none;
+      cursor: pointer;
       color: var(--color-text-secondary);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
+      font-size: var(--font-size-base);
+      white-space: nowrap;
       position: relative;
-      z-index: 1;
+      transition: color 0.2s;
     }
-    .step.active .step-number {
-      background: var(--color-primary);
-      color: white;
+    .form-tabs [role="tab"]:hover {
+      color: var(--color-primary);
+      background: var(--color-bg-hover);
     }
-    .step.completed .step-number {
-      background: var(--color-approved-text);
-      color: white;
-    }
-    .step-label {
-      font-size: var(--font-size-sm);
-      margin-top: var(--spacing-sm);
-      color: var(--color-text-secondary);
-    }
-    .step.active .step-label {
+    .form-tabs [role="tab"][aria-selected="true"] {
       color: var(--color-primary);
       font-weight: 500;
     }
-
-    .form-group label .required {
+    .form-tabs [role="tab"][aria-selected="true"]::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--color-primary);
+    }
+    /* Tab panels */
+    .tab-panel {
+      display: none;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+    /* Form sections */
+    .form-section {
+      background: var(--color-bg-white);
+      padding: var(--spacing-xl);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--spacing-lg);
+      box-shadow: var(--shadow-sm);
+    }
+    .form-section-title {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      margin-bottom: var(--spacing-lg);
+      padding-bottom: var(--spacing-sm);
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--spacing-lg);
+    }
+    .form-row-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .form-row-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .required {
       color: var(--color-rejected-text);
     }
-
+    /* Drug table */
+    .drug-table {
+      width: 100%;
+      margin-top: var(--spacing-lg);
+    }
+    .drug-table th, .drug-table td {
+      padding: var(--spacing-sm);
+      text-align: left;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    /* Button row */
     .btn-row {
       display: flex;
-      gap: var(--spacing-sm);
+      gap: var(--spacing-md);
       justify-content: flex-end;
       margin-top: var(--spacing-xl);
+      padding: var(--spacing-lg);
+      background: var(--color-bg-white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
     }
-    .btn {
-      padding: 0.6rem 1.5rem;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      font-size: var(--font-size-base);
-      border: none;
+    /* Info box */
+    .info-box {
+      background: var(--color-primary-light);
+      border-left: 4px solid var(--color-primary);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+      border-radius: var(--radius-sm);
     }
-
-    .patient-search {
+    .info-box ul {
+      margin: var(--spacing-sm) 0 0 var(--spacing-lg);
+    }
+    /* Error messages */
+    .error-message {
+      color: var(--color-rejected-text);
+      font-size: var(--font-size-sm);
+      margin-top: var(--spacing-xs);
+      display: none;
+    }
+    .error-message.show {
+      display: block;
+    }
+    /* Success/Status messages */
+    .status-message {
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+      border-radius: var(--radius-sm);
+      display: none;
+    }
+    .status-message.show {
+      display: block;
+    }
+    .status-message.success {
+      background: var(--color-approved-bg);
+      color: var(--color-approved-text);
+    }
+    .status-message.error {
+      background: var(--color-rejected-bg);
+      color: var(--color-rejected-text);
+    }
+    /* Original case field */
+    .original-case-field {
+      display: none;
+    }
+    .original-case-field.show {
+      display: block;
+    }
+    /* ICD autocomplete */
+    .icd-autocomplete {
       position: relative;
     }
-    .patient-search-results {
+    .icd-suggestions {
       position: absolute;
       top: 100%;
       left: 0;
@@ -108,31 +163,44 @@
       z-index: 10;
       display: none;
     }
-    .patient-search-results.show {
+    .icd-suggestions.show {
       display: block;
     }
-    .patient-search-item {
-      padding: 0.6rem;
+    .icd-suggestion-item {
+      padding: var(--spacing-sm);
       cursor: pointer;
-      border-bottom: 1px solid var(--color-border-light);
     }
-    .patient-search-item:hover {
+    .icd-suggestion-item:hover {
       background: var(--color-bg-hover);
     }
-    .patient-selected {
-      background: var(--color-primary-light);
-      padding: var(--spacing-md);
-      border-radius: var(--radius-sm);
-      display: none;
+    /* File upload */
+    .file-upload-area {
+      border: 2px dashed var(--color-border-input);
+      padding: var(--spacing-xl);
+      text-align: center;
+      border-radius: var(--radius-md);
+      cursor: pointer;
     }
-    .patient-selected.show {
-      display: block;
+    .file-upload-area:hover {
+      border-color: var(--color-primary);
+      background: var(--color-primary-light);
+    }
+    /* Notice list */
+    .notice-list {
+      list-style: none;
+    }
+    .notice-list li {
+      padding: var(--spacing-sm) 0;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    .notice-list li:last-child {
+      border-bottom: none;
     }
   </style>
 </head>
 <body>
   <header class="header">
-    <h1>🏥 TWPAS 癌症用藥事前審查系統</h1>
+    <h1>TWPAS 癌症用藥事前審查系統</h1>
     <div class="header-right">
       <span class="user-badge" id="user-role-badge"></span>
       <span id="username-display"></span>
@@ -142,198 +210,703 @@
 
   <nav class="sidebar">
     <ul class="sidebar-menu">
-      <li><a href="/dashboard"><span>📊</span> 儀表板</a></li>
+      <li><a href="/dashboard"><span class="icon">📊</span> 儀表板</a></li>
       <div class="menu-divider"></div>
       <div class="menu-label">案件管理</div>
-      <li><a href="/claim/new" class="active"><span>➕</span> 新增申請</a></li>
-      <li><a href="/claim"><span>📋</span> 案件列表</a></li>
+      <li><a href="/claim-form" class="active"><span class="icon">➕</span> 新增申請案</a></li>
+      <li><a href="/claim"><span class="icon">📋</span> 申請案件管理</a></li>
+      <li><a href="/claim?status=draft"><span class="icon">📝</span> 我的草稿</a></li>
       <div class="menu-divider"></div>
       <div class="menu-label">資料管理</div>
-      <li><a href="/patient"><span>👤</span> 病患資料</a></li>
-      <li><a href="/valueset"><span>📚</span> 值集管理</a></li>
+      <li><a href="/patient"><span class="icon">👤</span> 病人資料管理</a></li>
+      <li><a href="/valueset"><span class="icon">📚</span> 值集管理</a></li>
+      <div class="menu-divider"></div>
+      <div class="menu-label">系統功能</div>
+      <li><a href="/fhir"><span class="icon">🔄</span> FHIR 轉換</a></li>
+      <li><a href="/nhi-upload"><span class="icon">☁️</span> 健保上傳</a></li>
+      <div class="menu-divider"></div>
+      <li><a href="/profile"><span class="icon">👤</span> 個人資料</a></li>
+      <li><a href="/settings"><span class="icon">⚙️</span> 系統設定</a></li>
     </ul>
   </nav>
 
   <main class="main">
-    <div class="breadcrumb">
-      <a href="/dashboard">首頁</a> / <a href="/claim">案件列表</a> / 新增申請
-    </div>
-
     <div class="page-header">
-      <h2>📝 新增申請案件</h2>
+      <h2>新增申請案</h2>
     </div>
 
-    <div class="steps">
-      <div class="step active">
-        <div class="step-number">1</div>
-        <div class="step-label">基本資料</div>
-      </div>
-      <div class="step">
-        <div class="step-number">2</div>
-        <div class="step-label">疾病資訊</div>
-      </div>
-      <div class="step">
-        <div class="step-number">3</div>
-        <div class="step-label">用藥資訊</div>
-      </div>
-      <div class="step">
-        <div class="step-number">4</div>
-        <div class="step-label">檢驗資料</div>
-      </div>
-      <div class="step">
-        <div class="step-number">5</div>
-        <div class="step-label">確認送出</div>
-      </div>
+    <!-- Status Message -->
+    <div id="status-message" class="status-message">
+      <span id="status-content"></span>
     </div>
 
-    <div class="card">
-      <div class="card-header">📋 基本資料</div>
-      <div class="card-body">
-        <div class="form-row">
+    <!-- Drug cycle info box -->
+    <div class="info-box">
+      <strong>用藥申請週期提示：</strong>
+      <ul>
+        <li>早期乳癌：24週</li>
+        <li>晚期乳癌：18週</li>
+        <li>Kadcyla：12週</li>
+      </ul>
+    </div>
+
+    <!-- Form Tabs -->
+    <div class="form-tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="medical-record" onclick="selectFormTab(this)">病歷摘要</button>
+      <button role="tab" aria-selected="false" data-tab="test-results" onclick="selectFormTab(this)">檢驗結果</button>
+      <button role="tab" aria-selected="false" data-tab="attachment-summary" onclick="selectFormTab(this)">附件摘要</button>
+      <button role="tab" aria-selected="false" data-tab="attachment-other" onclick="selectFormTab(this)">附件-其他</button>
+      <button role="tab" aria-selected="false" data-tab="payment-rules" onclick="selectFormTab(this)">給付規定</button>
+      <button role="tab" aria-selected="false" data-tab="supplementary" onclick="selectFormTab(this)">補充附件</button>
+    </div>
+
+    <!-- Tab 1: 病歷摘要 -->
+    <div id="medical-record" class="tab-panel active">
+      <!-- Basic Info Section -->
+      <div class="form-section">
+        <div class="form-section-title">基本資料</div>
+        <div class="form-row form-row-4">
           <div class="form-group">
-            <label>申報類別 <span class="required">*</span></label>
-            <select id="apply-type">
+            <label for="visit-type">門診/住院 <span class="required">*</span></label>
+            <select id="visit-type">
               <option value="">請選擇</option>
-              <option value="new">新申請</option>
-              <option value="continue">續用申請</option>
-              <option value="change">療程變更</option>
+              <option value="門診">門診</option>
+              <option value="住院">住院</option>
             </select>
           </div>
           <div class="form-group">
-            <label>案件類型 <span class="required">*</span></label>
-            <select id="case-type">
+            <label for="patient-name">姓名 <span class="required">*</span></label>
+            <input type="text" id="patient-name" placeholder="請輸入病人姓名">
+          </div>
+          <div class="form-group">
+            <label for="id-number">身分證字號 <span class="required">*</span></label>
+            <input type="text" id="id-number" placeholder="A123456789" maxlength="10">
+            <div id="id-error" class="error-message">請填身分證字號共十碼(前一碼為大寫英文字母)</div>
+          </div>
+          <div class="form-group">
+            <label for="mrn">病歷號 <span class="required">*</span></label>
+            <input type="text" id="mrn" placeholder="請輸入病歷號">
+          </div>
+        </div>
+        <div class="form-row form-row-4">
+          <div class="form-group">
+            <label for="gender">性別 <span class="required">*</span></label>
+            <input type="text" id="gender" placeholder="M / F" maxlength="1">
+            <div id="gender-error" class="error-message">請輸入 M / F</div>
+          </div>
+          <div class="form-group">
+            <label for="birth-date">出生年月日 <span class="required">*</span></label>
+            <input type="date" id="birth-date" onchange="calculateAge()">
+          </div>
+          <div class="form-group">
+            <label for="age">年齡</label>
+            <input type="text" id="age" readonly placeholder="自動計算">
+          </div>
+          <div class="form-group">
+            <label for="apply-type">申請類別 <span class="required">*</span></label>
+            <select id="apply-type" onchange="handleApplyTypeChange()">
               <option value="">請選擇</option>
-              <option value="general">一般事前審查</option>
-              <option value="expedited">加速審查</option>
-              <option value="emergency">緊急使用</option>
+              <option value="送核">送核</option>
+              <option value="補件">補件</option>
+              <option value="申復">申復</option>
+              <option value="爭議審議">爭議審議</option>
+              <option value="資料異動">資料異動</option>
             </select>
           </div>
         </div>
-
-        <div class="form-group patient-search">
-          <label>病患 <span class="required">*</span></label>
-          <input type="text" id="patient-search" placeholder="輸入身分證字號或姓名搜尋...">
-          <div class="patient-search-results" id="patient-results"></div>
-        </div>
-
-        <div class="patient-selected" id="patient-info">
-          <strong>已選擇病患：</strong>
-          <span id="selected-patient-name"></span> (<span id="selected-patient-id"></span>)
-          <button type="button" onclick="clearPatient()" style="margin-left: 1rem; background: var(--color-rejected-bg); color: var(--color-rejected-text); border: none; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer;">✕ 清除</button>
-        </div>
-
-        <div class="form-row">
+        <div class="form-row form-row-4">
           <div class="form-group">
-            <label>申報醫師 <span class="required">*</span></label>
-            <input type="text" id="practitioner" value="王大明醫師" readonly>
-            <div class="form-hint">自動帶入登入醫師資料</div>
+            <label for="patient-status">目前病患病況 <span class="required">*</span></label>
+            <select id="patient-status" onchange="handlePatientStatusChange()">
+              <option value="">請選擇</option>
+              <option value="局部晚期性疾病">局部晚期性疾病</option>
+              <option value="轉移性疾病">轉移性疾病</option>
+              <option value="早期疾病">早期疾病</option>
+              <option value="其他">其他</option>
+            </select>
+          </div>
+          <div class="form-group" id="other-status-group" style="display: none;">
+            <label for="other-status-desc">其他病況描述 <span class="required">*</span></label>
+            <input type="text" id="other-status-desc" placeholder="請描述病況">
           </div>
           <div class="form-group">
-            <label>醫療機構</label>
-            <input type="text" value="台大醫院" readonly>
+            <label for="apply-count">申請次數 <span class="required">*</span></label>
+            <input type="number" id="apply-count" min="1" value="1">
+          </div>
+          <div class="form-group original-case-field" id="original-case-group">
+            <label for="original-case">原案件編號</label>
+            <input type="text" id="original-case" placeholder="請輸入原申請案件編號">
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="card">
-      <div class="card-header">🏥 診斷資訊</div>
-      <div class="card-body">
+      <!-- ICD Code Section -->
+      <div class="form-section">
+        <div class="form-section-title">申請疾病別</div>
         <div class="form-row">
-          <div class="form-group">
-            <label>主診斷 ICD-10 <span class="required">*</span></label>
-            <input type="text" id="diagnosis-code" placeholder="例：C34.1">
+          <div class="form-group icd-autocomplete">
+            <label for="icd-search">ICD-10-CM 代碼查詢</label>
+            <input type="text" id="icd-search" placeholder="輸入ICD代碼或疾病代碼" oninput="searchICD()">
+            <div id="icd-suggestions" class="icd-suggestions" role="listbox"></div>
           </div>
           <div class="form-group">
-            <label>診斷名稱</label>
-            <input type="text" id="diagnosis-name" placeholder="會自動帶入">
+            <label for="disease-code">申請疾病別</label>
+            <input type="text" id="disease-code" readonly placeholder="選擇後自動填入">
+            <span id="disease-code-display" class="disease-display"></span>
+          </div>
+          <div class="form-group" style="align-self: flex-end;">
+            <button class="btn-secondary" onclick="clearDiseaseCode()">一鍵清空申請疾病別</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drug Application Section -->
+      <div class="form-section">
+        <div class="form-section-title">申請品項</div>
+        <div class="form-row form-row-4">
+          <div class="form-group">
+            <label for="weight">體重 (kg)</label>
+            <input type="number" id="weight" placeholder="請輸入體重">
+          </div>
+          <div class="form-group">
+            <label for="drug-name">藥品名稱及代碼 <span class="required">*</span></label>
+            <select id="drug-name">
+              <option value="">請選擇</option>
+              <option value="Trastuzumab" label="Trastuzumab (Herceptin)">KC01065221 - Trastuzumab (Herceptin)</option>
+              <option value="Kadcyla" label="Kadcyla (Ado-trastuzumab Emtansine)">KC01065222 - Kadcyla (Ado-trastuzumab Emtansine)</option>
+              <option value="Perjeta" label="Perjeta (Pertuzumab)">KC01065223 - Perjeta (Pertuzumab)</option>
+              <option value="Phesgo" label="Phesgo">KC01065224 - Phesgo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="use-date-start">使用日期起</label>
+            <input type="date" id="use-date-start">
+          </div>
+          <div class="form-group">
+            <label for="use-date-end">使用日期訖</label>
+            <input type="date" id="use-date-end" onchange="validateDateRange()">
+            <div id="date-error" class="error-message">使用日期訖不得早於使用日期起</div>
+          </div>
+        </div>
+        <div class="form-row form-row-4">
+          <div class="form-group">
+            <label for="surgery-date">手術日期</label>
+            <input type="date" id="surgery-date">
+          </div>
+          <div class="form-group" style="align-self: flex-end;">
+            <button class="btn-primary" onclick="addDrugItem()">新增</button>
+          </div>
+        </div>
+
+        <!-- Drug Items Table -->
+        <table class="drug-table">
+          <thead>
+            <tr>
+              <th>藥品名稱及代碼</th>
+              <th>療程劑量</th>
+              <th>申請數量</th>
+              <th>使用日期起</th>
+              <th>使用日期訖</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="drug-items"></tbody>
+        </table>
+      </div>
+
+      <!-- Doctor Info Section -->
+      <div class="form-section">
+        <div class="form-section-title">申請醫師資訊</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="doctor-name">申請醫師 <span class="required">*</span></label>
+            <input type="text" id="doctor-name" value="洪主任">
+          </div>
+          <div class="form-group">
+            <label for="doctor-id">醫師身分證</label>
+            <input type="text" id="doctor-id" placeholder="請輸入醫師身分證字號">
+          </div>
+        </div>
+      </div>
+
+      <!-- Medical Description Section -->
+      <div class="form-section">
+        <div class="form-section-title">病歷說明</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="common-phrases">常用字</label>
+            <select id="common-phrases" onchange="insertCommonPhrase()">
+              <option value="">請選擇範本</option>
+              <option value="病人診斷為早期乳癌">早期乳癌範本</option>
+              <option value="病人診斷為晚期乳癌">晚期乳癌範本</option>
+              <option value="病人診斷為轉移性乳癌">轉移性乳癌範本</option>
+            </select>
           </div>
         </div>
         <div class="form-group">
-          <label>病情摘要</label>
-          <textarea id="clinical-summary" placeholder="請描述病患目前的臨床狀態..."></textarea>
+          <label for="medical-description">病歷說明</label>
+          <textarea id="medical-description" rows="6" placeholder="請輸入詳細的病歷摘要..."></textarea>
         </div>
       </div>
     </div>
 
+    <!-- Tab 2: 檢驗結果 -->
+    <div id="test-results" class="tab-panel">
+      <div class="form-section">
+        <div class="form-section-title">上傳區域</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="test-category" id="test-category-label">報告類別</label>
+            <select id="test-category" aria-label="檢驗結果類別">
+              <option value="">請選擇</option>
+              <option value="電腦斷層">電腦斷層</option>
+              <option value="超音波檢查">超音波檢查</option>
+              <option value="核磁共振">核磁共振</option>
+              <option value="病理報告">病理報告</option>
+              <option value="基因檢測">基因檢測</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="test-date">檢查日期</label>
+            <input type="date" id="test-date">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>上傳檔案</label>
+          <div class="file-upload-area" onclick="document.getElementById('test-file').click()">
+            <p>點擊或拖拽檔案至此處上傳</p>
+            <p>支援 PDF, JPG, PNG 格式</p>
+          </div>
+          <input type="file" id="test-file" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleTestFileUpload()">
+          <div id="test-upload-status" class="status-message"></div>
+        </div>
+
+        <div class="form-section-title" style="margin-top: var(--spacing-xl);">已上傳檔案統計</div>
+        <table class="drug-table">
+          <thead>
+            <tr>
+              <th>類別</th>
+              <th>已上傳數量</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>電腦斷層</td><td>0</td></tr>
+            <tr><td>超音波檢查</td><td>0</td></tr>
+            <tr><td>核磁共振</td><td>0</td></tr>
+            <tr><td>病理報告</td><td>0</td></tr>
+            <tr><td>基因檢測</td><td>0</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab 3: 附件摘要 -->
+    <div id="attachment-summary" class="tab-panel">
+      <div class="form-section">
+        <div class="form-section-title">病患同意書</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="consent-date">同意書簽署日期</label>
+            <input type="date" id="consent-date">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>上傳病患同意書</label>
+          <div class="file-upload-area" onclick="document.getElementById('consent-file').click()">
+            <p>點擊或拖拽檔案至此處上傳</p>
+          </div>
+          <input type="file" id="consent-file" style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="handleConsentFileUpload()">
+          <div id="consent-upload-status" class="status-message"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: 附件-其他 -->
+    <div id="attachment-other" class="tab-panel">
+      <div class="form-section">
+        <div class="form-section-title">其他附件</div>
+        <div class="form-group">
+          <label>上傳其他附件</label>
+          <div class="file-upload-area" onclick="document.getElementById('other-file').click()">
+            <p>點擊或拖拽檔案至此處上傳</p>
+          </div>
+          <input type="file" id="other-file" style="display: none;" accept=".pdf,.jpg,.jpeg,.png">
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 5: 給付規定 -->
+    <div id="payment-rules" class="tab-panel">
+      <div class="form-section">
+        <div class="form-section-title">注意事項</div>
+        <ul class="notice-list">
+          <li>1. 本申請書限一人一案，請勿重複申請。</li>
+          <li>2. 應事前審查之項目未依規定事前申請核准者，不予給付。</li>
+          <li>3. 申請案件需於14日內完成審核。</li>
+          <li>4. 補件期限為收到補件通知後7日內。</li>
+          <li>5. 申復期限為收到審核結果後30日內。</li>
+        </ul>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">NHI規範</div>
+        <p>依據全民健康保險藥品規範，本藥品適用於以下情況：</p>
+        <ul class="notice-list">
+          <li>HER2 陽性早期乳癌之輔助性治療</li>
+          <li>HER2 陽性轉移性乳癌</li>
+          <li>HER2 陽性轉移性胃癌</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Tab 6: 補充附件 -->
+    <div id="supplementary" class="tab-panel">
+      <div class="form-section">
+        <div class="form-section-title">額外資料</div>
+        <div class="form-group">
+          <label>上傳其他資料</label>
+          <div class="file-upload-area" onclick="document.getElementById('supplementary-file').click()">
+            <p>點擊或拖拽檔案至此處上傳</p>
+          </div>
+          <input type="file" id="supplementary-file" style="display: none;" accept=".pdf,.jpg,.jpeg,.png">
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
     <div class="btn-row">
-      <button class="btn btn-secondary" onclick="saveDraft()">💾 儲存草稿</button>
-      <button class="btn btn-primary" onclick="nextStep()">下一步 →</button>
+      <button class="btn-secondary" onclick="window.location.href='/claim'">取消</button>
+      <button class="btn-warning" onclick="saveDraft()">暫時儲存 (草稿)</button>
+      <button class="btn-primary" onclick="submitForReview()">確認送出 (待審核)</button>
     </div>
   </main>
 
   <script src="/shared.js"></script>
   <script>
-    // Mock patients for search
-    const patients = [
-      { id: 'A123456789', name: '王小明', gender: '男', birth: '1965-03-15' },
-      { id: 'B234567890', name: '李小華', gender: '女', birth: '1970-08-22' },
-      { id: 'C345678901', name: '張大成', gender: '男', birth: '1958-11-08' },
+    // Form state
+    var formData = {};
+    var drugItems = [];
+
+    // Tab selection
+    function selectFormTab(tab) {
+      document.querySelectorAll('.form-tabs [role="tab"]').forEach(function(t) {
+        t.setAttribute('aria-selected', 'false');
+      });
+      tab.setAttribute('aria-selected', 'true');
+
+      document.querySelectorAll('.tab-panel').forEach(function(p) {
+        p.classList.remove('active');
+      });
+      document.getElementById(tab.dataset.tab).classList.add('active');
+    }
+
+    // Calculate age from birth date
+    function calculateAge() {
+      var birthDate = document.getElementById('birth-date').value;
+      if (birthDate) {
+        var age = calculateAge2(birthDate);
+        document.getElementById('age').value = age + ' 歲';
+      }
+    }
+
+    function calculateAge2(birthDate) {
+      var today = new Date();
+      var birth = new Date(birthDate);
+      var age = today.getFullYear() - birth.getFullYear();
+      var m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+        age--;
+      }
+      return age;
+    }
+
+    // Handle apply type change (show/hide original case field)
+    function handleApplyTypeChange() {
+      var applyType = document.getElementById('apply-type').value;
+      var originalCaseGroup = document.getElementById('original-case-group');
+      if (applyType === '補件' || applyType === '申復' || applyType === '爭議審議' || applyType === '資料異動') {
+        originalCaseGroup.classList.add('show');
+      } else {
+        originalCaseGroup.classList.remove('show');
+      }
+    }
+
+    // Handle patient status change
+    function handlePatientStatusChange() {
+      var status = document.getElementById('patient-status').value;
+      var otherGroup = document.getElementById('other-status-group');
+      if (status === '其他') {
+        otherGroup.style.display = 'block';
+      } else {
+        otherGroup.style.display = 'none';
+      }
+    }
+
+    // ICD Code search
+    var icdCodes = [
+      { code: 'C50', name: '乳房惡性腫瘤', related: ['G009', 'G011'] },
+      { code: 'G009', name: 'HER2陽性乳癌', related: ['C50'] },
+      { code: 'G010', name: 'HER2陽性胃癌', related: [] },
+      { code: 'G011', name: 'HER2陽性轉移性乳癌', related: ['C50'] }
     ];
 
-    let selectedPatient = null;
-
-    document.getElementById('patient-search').addEventListener('input', function() {
-      const query = this.value.toLowerCase();
-      const resultsDiv = document.getElementById('patient-results');
+    function searchICD() {
+      var query = document.getElementById('icd-search').value.toUpperCase();
+      var suggestions = document.getElementById('icd-suggestions');
 
       if (query.length < 2) {
-        resultsDiv.classList.remove('show');
+        suggestions.classList.remove('show');
         return;
       }
 
-      const matches = patients.filter(p =>
-        p.id.toLowerCase().includes(query) || p.name.includes(query)
-      );
+      // Find matching codes
+      var matches = icdCodes.filter(function(icd) {
+        return icd.code.includes(query) || icd.name.includes(query);
+      });
+
+      // Also include related codes
+      var matchedCodes = matches.map(function(m) { return m.code; });
+      var relatedCodes = [];
+      matches.forEach(function(m) {
+        m.related.forEach(function(r) {
+          if (!matchedCodes.includes(r) && !relatedCodes.includes(r)) {
+            relatedCodes.push(r);
+          }
+        });
+      });
+      relatedCodes.forEach(function(code) {
+        var icd = icdCodes.find(function(i) { return i.code === code; });
+        if (icd) matches.push(icd);
+      });
 
       if (matches.length > 0) {
-        resultsDiv.textContent = '';
-        matches.forEach(p => {
-          const div = document.createElement('div');
-          div.className = 'patient-search-item';
-          div.textContent = p.name + ' (' + p.id + ') - ' + p.gender + ', ' + p.birth;
-          div.onclick = () => selectPatient(p);
-          resultsDiv.appendChild(div);
+        suggestions.textContent = '';
+        matches.forEach(function(icd) {
+          var div = document.createElement('div');
+          div.className = 'icd-suggestion-item';
+          div.textContent = icd.code + ' - ' + icd.name;
+          div.onclick = function() { selectICD(icd.code); };
+          suggestions.appendChild(div);
         });
-        resultsDiv.classList.add('show');
+        suggestions.classList.add('show');
       } else {
-        resultsDiv.classList.remove('show');
+        suggestions.classList.remove('show');
+      }
+    }
+
+    function selectICD(code) {
+      document.getElementById('disease-code').value = code;
+      document.getElementById('disease-code-display').textContent = code;
+      document.getElementById('icd-search').value = '';
+      var suggestions = document.getElementById('icd-suggestions');
+      suggestions.classList.remove('show');
+      suggestions.textContent = ''; // Clear content so it won't match text queries
+    }
+
+    function clearDiseaseCode() {
+      document.getElementById('disease-code').value = '';
+      document.getElementById('disease-code-display').textContent = '';
+      document.getElementById('icd-search').value = '';
+    }
+
+    // Drug items management
+    function addDrugItem() {
+      var drugName = document.getElementById('drug-name').value;
+      var weight = document.getElementById('weight').value;
+      var dateStart = document.getElementById('use-date-start').value;
+      var dateEnd = document.getElementById('use-date-end').value;
+
+      if (!drugName) {
+        alert('請選擇藥品');
+        return;
+      }
+
+      var item = {
+        name: drugName,
+        dose: weight ? (weight * 8) + 'mg' : '計算中',
+        quantity: '1',
+        dateStart: dateStart,
+        dateEnd: dateEnd
+      };
+      drugItems.push(item);
+      renderDrugItems();
+
+      // Clear form
+      document.getElementById('drug-name').value = '';
+      document.getElementById('use-date-start').value = '';
+      document.getElementById('use-date-end').value = '';
+    }
+
+    function renderDrugItems() {
+      var tbody = document.getElementById('drug-items');
+      tbody.textContent = '';
+      drugItems.forEach(function(item, index) {
+        var tr = document.createElement('tr');
+
+        var tdName = document.createElement('td');
+        tdName.textContent = item.name;
+        tr.appendChild(tdName);
+
+        var tdDose = document.createElement('td');
+        tdDose.textContent = item.dose;
+        tr.appendChild(tdDose);
+
+        var tdQty = document.createElement('td');
+        tdQty.textContent = item.quantity;
+        tr.appendChild(tdQty);
+
+        var tdStart = document.createElement('td');
+        tdStart.textContent = item.dateStart;
+        tr.appendChild(tdStart);
+
+        var tdEnd = document.createElement('td');
+        tdEnd.textContent = item.dateEnd;
+        tr.appendChild(tdEnd);
+
+        var tdAction = document.createElement('td');
+        var deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn-action btn-delete';
+        deleteBtn.textContent = '刪除';
+        deleteBtn.onclick = function() { removeDrugItem(index); };
+        tdAction.appendChild(deleteBtn);
+        tr.appendChild(tdAction);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function removeDrugItem(index) {
+      drugItems.splice(index, 1);
+      renderDrugItems();
+    }
+
+    // Date validation
+    function validateDateRange() {
+      var startDate = document.getElementById('use-date-start').value;
+      var endDate = document.getElementById('use-date-end').value;
+      var errorEl = document.getElementById('date-error');
+
+      if (startDate && endDate && endDate < startDate) {
+        errorEl.classList.add('show');
+      } else {
+        errorEl.classList.remove('show');
+      }
+    }
+
+    // ID number validation
+    document.getElementById('id-number').addEventListener('blur', function() {
+      var value = this.value;
+      var errorEl = document.getElementById('id-error');
+      var pattern = /^[A-Z][12]\d{8}$/;
+
+      if (value && !pattern.test(value)) {
+        errorEl.classList.add('show');
+      } else {
+        errorEl.classList.remove('show');
       }
     });
 
-    function selectPatient(patient) {
-      selectedPatient = patient;
-      document.getElementById('patient-search').style.display = 'none';
-      document.getElementById('patient-results').classList.remove('show');
-      document.getElementById('patient-info').classList.add('show');
-      document.getElementById('selected-patient-name').textContent = patient.name;
-      document.getElementById('selected-patient-id').textContent = patient.id;
+    // Gender validation
+    document.getElementById('gender').addEventListener('blur', function() {
+      var value = this.value.toUpperCase();
+      var errorEl = document.getElementById('gender-error');
+
+      if (value && value !== 'M' && value !== 'F') {
+        errorEl.classList.add('show');
+      } else {
+        errorEl.classList.remove('show');
+        this.value = value;
+      }
+    });
+
+    // Common phrase insertion
+    function insertCommonPhrase() {
+      var phrase = document.getElementById('common-phrases').value;
+      if (phrase) {
+        document.getElementById('medical-description').value = phrase;
+      }
     }
 
-    function clearPatient() {
-      selectedPatient = null;
-      document.getElementById('patient-search').style.display = 'block';
-      document.getElementById('patient-search').value = '';
-      document.getElementById('patient-info').classList.remove('show');
+    // File upload handlers
+    function handleTestFileUpload() {
+      var statusEl = document.getElementById('test-upload-status');
+      statusEl.textContent = '上傳成功';
+      statusEl.classList.add('show', 'success');
     }
 
+    function handleConsentFileUpload() {
+      var statusEl = document.getElementById('consent-upload-status');
+      statusEl.textContent = '上傳成功';
+      statusEl.classList.add('show', 'success');
+    }
+
+    // Form validation
+    function validateForm() {
+      // Core required fields for submission
+      var requiredFields = [
+        { id: 'patient-name', name: '姓名' },
+        { id: 'id-number', name: '身分證字號' },
+        { id: 'mrn', name: '病歷號' },
+        { id: 'gender', name: '性別' },
+        { id: 'birth-date', name: '出生年月日' },
+        { id: 'apply-type', name: '申請類別' }
+      ];
+
+      var missing = requiredFields.filter(function(f) {
+        return !document.getElementById(f.id).value;
+      });
+      return missing;
+    }
+
+    // Save draft
     function saveDraft() {
-      alert('草稿已儲存！');
+      showStatusMessage('已儲存', 'success');
+      // Add status indicator
+      var statusDiv = document.createElement('div');
+      statusDiv.textContent = '草稿';
+      statusDiv.className = 'status-badge status-draft';
+      statusDiv.style.marginTop = '10px';
+      document.getElementById('status-message').appendChild(statusDiv);
     }
 
-    function nextStep() {
-      if (!document.getElementById('apply-type').value) {
-        alert('請選擇申報類別');
+    // Submit for review
+    function submitForReview() {
+      var missing = validateForm();
+
+      if (missing.length > 0) {
+        var names = missing.map(function(f) { return f.name; }).join(', ');
+        showStatusMessage('必填欄位未填寫：' + names, 'error');
         return;
       }
-      if (!selectedPatient) {
-        alert('請選擇病患');
-        return;
-      }
-      alert('功能開發中...\n\n此為 Mock 展示，完整表單功能將在後續版本實作。');
+
+      showStatusMessage('已送出', 'success');
+      // Add status indicator
+      var statusDiv = document.createElement('div');
+      statusDiv.textContent = '待審核';
+      statusDiv.className = 'status-badge status-pending';
+      statusDiv.style.marginTop = '10px';
+      document.getElementById('status-message').appendChild(statusDiv);
     }
 
-    displayUserInfo();
+    function showStatusMessage(message, type) {
+      var statusEl = document.getElementById('status-message');
+      var contentEl = document.getElementById('status-content');
+
+      contentEl.textContent = message;
+
+      statusEl.className = 'status-message show';
+      if (type === 'success') {
+        statusEl.classList.add('success');
+      } else if (type === 'error') {
+        statusEl.classList.add('error');
+      }
+    }
+
+    // Initialize
+    var user = displayUserInfo();
+    if (user) {
+      // Pre-fill doctor name from logged in user
+      // Already set as default value
+    }
   </script>
 </body>
 </html>
