@@ -138,6 +138,10 @@ export function filterByPeriod(
       }
       const start = new Date(startDate);
       const end = new Date(endDate);
+      // 驗證日期是否有效
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return cases;
+      }
       return cases.filter(c => {
         const created = new Date(c.createdAt);
         return created >= start && created <= end;

@@ -39,6 +39,7 @@ export function validateImagingReport(report: ImagingReport): DiseaseInfoValidat
   } else {
     // 檢查日期是否為未來日期
     const reportDate = new Date(report.reportDate);
+    reportDate.setHours(0, 0, 0, 0);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (reportDate > today) {

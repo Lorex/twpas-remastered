@@ -125,6 +125,11 @@ export function validatePassword(password: string): PasswordValidationResult {
     errors.push(ERROR_MESSAGES.PASSWORD_UPPERCASE);
   }
 
+  // 檢查小寫字母
+  if (!checks.hasLowercase) {
+    errors.push(ERROR_MESSAGES.PASSWORD_LOWERCASE);
+  }
+
   // 檢查數字
   if (!checks.hasDigit) {
     errors.push(ERROR_MESSAGES.PASSWORD_DIGIT);

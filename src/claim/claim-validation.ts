@@ -16,7 +16,9 @@ const ERROR_MESSAGES = {
   CASE_TYPE_REQUIRED: '案件類別為必填',
   PRACTITIONER_REQUIRED: '申請醫師為必填',
   WEIGHT_REQUIRED: '體重為必填',
+  WEIGHT_INVALID: '體重必須為正數',
   HEIGHT_REQUIRED: '身高為必填',
+  HEIGHT_INVALID: '身高必須為正數',
   ORIGINAL_CASE_NUMBER_REQUIRED: '原案件編號為必填',
 };
 
@@ -67,11 +69,15 @@ export function validateClaim(data: ClaimValidationData): ValidationResult {
   // 驗證體重
   if (data.weight === undefined || data.weight === null) {
     errors.push(ERROR_MESSAGES.WEIGHT_REQUIRED);
+  } else if (data.weight <= 0) {
+    errors.push(ERROR_MESSAGES.WEIGHT_INVALID);
   }
 
   // 驗證身高
   if (data.height === undefined || data.height === null) {
     errors.push(ERROR_MESSAGES.HEIGHT_REQUIRED);
+  } else if (data.height <= 0) {
+    errors.push(ERROR_MESSAGES.HEIGHT_INVALID);
   }
 
   // 驗證續用案件的原案件編號
