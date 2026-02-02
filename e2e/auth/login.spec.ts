@@ -197,6 +197,34 @@ test.describe('使用者登入 @auth @login', () => {
     // 並且 我應該看到訊息 "您的登入已過期，請重新登入"
     await expect(page.getByText('您的登入已過期，請重新登入')).toBeVisible();
   });
+
+  /**
+   * @bdd-generated
+   * @bdd-hash 2f7a3b8c9d0e1f2a3b4c5d6e7f8a9b0c
+   * @scenario 連續登入失敗後鎖定帳號
+   * @tags @security
+   */
+  test('連續登入失敗後鎖定帳號', async ({ page }) => {
+    // 當 我在登入頁面
+    await expectToBeOnLoginPage(page);
+
+    // 並且 我使用錯誤密碼嘗試登入 "doctor01" 連續 5 次
+    for (let i = 0; i < 5; i++) {
+      await fillLoginForm(page, 'doctor01', 'WrongPassword');
+      await clickLoginButton(page);
+      if (i < 4) {
+        // 前 4 次會看到一般錯誤訊息，等待後重試
+        await expect(page.getByText('帳號或密碼錯誤')).toBeVisible();
+        await page.reload();
+      }
+    }
+
+    // 那麼 我應該看到錯誤訊息 "帳號已被鎖定，請在 15 分鐘後重試"
+    await expectErrorMessage(page, '帳號已被鎖定，請在 15 分鐘後重試');
+
+    // 並且 該帳號應該被暫時鎖定 15 分鐘
+    // Note: Account lockout status should be verified via API or database check
+  });
 });
 
 // ============================================================================
