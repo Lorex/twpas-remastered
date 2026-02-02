@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {"type": "command", "command": ".claude/hooks/bdd-test-sync.sh"},
+          {"type": "command", "command": ".claude/hooks/tdd-development.sh"},
+          {"type": "command", "command": ".claude/hooks/code-review.sh"}
+        ]
+      }
+    ]
+  }
+}
